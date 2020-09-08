@@ -1,7 +1,7 @@
-# Bounded Cost Heuristic Search
+# Project Name
 
-## Welcome to bounded cost heuristic search project!
-The purpose of the project is to implement several state-of-the-art BCS algorithms and run benchmark with classical search domains such as Sliding Tiles, Pancakes. 
+## Welcome to <Project Name> project!
+The purpose of the project is to... 
 
 ## Prerequisites
 We use `clang` ecosystem to compile and develop the codebase. You can install necessary components by running
