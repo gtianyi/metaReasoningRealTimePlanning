@@ -56,6 +56,7 @@ For more details see the Conan [Getting Started](https://docs.conan.io/en/latest
 ```
 git clone <repo>
 mkdir build && cd build
+conan install ../<repo>
 cmake -GNinja ../<repo>
 ninja <executable> 
 ```
