@@ -22,8 +22,8 @@ void getCpuStatistic(vector<double>& lookaheadCpuTime,
            lookaheadCpuTime.size();
 
     for (int i = 1; i <= 100; i++) {
-        int percentID =
-          (int)(((double)i / 100) * (lookaheadCpuTime.size() - 1));
+        size_t percentID = static_cast<size_t>((static_cast<double>(i) / 100) *
+                                               (lookaheadCpuTime.size() - 1));
         percentiles.push_back(lookaheadCpuTime[percentID]);
     }
 }
@@ -69,7 +69,7 @@ ResultContainer startAlg(shared_ptr<Domain> domain_ptr, string expansionModule,
     if (algName == "RiskDD" || algName == "RiskDDSquish")
         DiscreteDistributionDD::readData<Domain>(domain_ptr);
 
-    return searchAlg->search(1000 * 200 / lookahead);
+    return searchAlg->search(1000 * 200 / static_cast<int>(lookahead));
 }
 
 int main(int argc, char** argv)
@@ -232,11 +232,11 @@ int main(int argc, char** argv)
 
     // dumpout solution path
     if (args.count("pathOut")) {
-        ofstream out(args["pathOut"].as<std::string>());
+        ofstream pout(args["pathOut"].as<std::string>());
         while (!res.path.empty()) {
-            out << res.path.front();
+            pout << res.path.front();
             res.path.pop();
         }
-        out.close();
+        pout.close();
     }
 }
