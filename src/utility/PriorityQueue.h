@@ -1,251 +1,230 @@
 #pragma once
-#include <vector>
-#include <limits>
 #include <functional>
+#include <iostream>
+#include <limits>
+#include <unordered_map>
+#include <vector>
 
 using namespace std;
 
-template <class T>
-class PriorityQueue {
+template<class T>
+class PriorityQueue
+{
 protected:
-	vector<T> c;
-	std::function<bool(T, T)> comp;
-	double capacity;
+    vector<T>                 c;
+    unordered_map<T, size_t>  item2index;
+    std::function<bool(T, T)> comp;
+    double                    capacity;
 
-	static bool lessThan(const T n1, const T n2)
-	{
-		return n1 < n2;
-	}
+    static bool lessThan(const T n1, const T n2) { return n1 < n2; }
 
 public:
-	PriorityQueue()
-	{
-		capacity = numeric_limits<double>::infinity();
-		comp = lessThan;
-		makeHeap();
-	}
+    PriorityQueue()
+    {
+        capacity = numeric_limits<double>::infinity();
+        comp     = lessThan;
+        makeHeap();
+    }
 
-	PriorityQueue(double maxCapacity, const std::function<bool(const T, const T)>& comp_)
-		: capacity(maxCapacity), comp(comp_)
-	{
-		makeHeap();
-	}
+    PriorityQueue(double                                       maxCapacity,
+                  const std::function<bool(const T, const T)>& comp_)
+        : capacity(maxCapacity)
+        , comp(comp_)
+    {
+        makeHeap();
+    }
 
-	PriorityQueue(const std::function<bool(const T, const T)>& comp_)
-		: comp(comp_)
-	{
-		capacity = numeric_limits<double>::infinity();
-		makeHeap();
-	}
+    PriorityQueue(const std::function<bool(const T, const T)>& comp_)
+        : comp(comp_)
+    {
+        capacity = numeric_limits<double>::infinity();
+        makeHeap();
+    }
 
-	PriorityQueue(double maxCapacity)
-		: capacity(maxCapacity)
-	{
-		comp = lessThan;
-		makeHeap();
-	}
+    PriorityQueue(double maxCapacity)
+        : capacity(maxCapacity)
+    {
+        comp = lessThan;
+        makeHeap();
+    }
 
-	PriorityQueue(const PriorityQueue<T>& pq)
-	{
-		c = pq.c;
-		comp = pq.comp;
-		capacity = pq.capacity;
-	}
+    PriorityQueue(const PriorityQueue<T>& pq)
+    {
+        c        = pq.c;
+        comp     = pq.comp;
+        capacity = pq.capacity;
+        item2index = pq.item2index;
+    }
 
-	PriorityQueue<T>& operator=(const PriorityQueue<T>& rhs)
-	{
-		if (&rhs == this)
-			return *this;
-		c = rhs.c;
-		comp = rhs.comp;
-		capacity = rhs.capacity;
-		return *this;
-	}
+    PriorityQueue<T>& operator=(const PriorityQueue<T>& rhs)
+    {
+        if (&rhs == this)
+            return *this;
+        c        = rhs.c;
+        comp     = rhs.comp;
+        capacity = rhs.capacity;
+        item2index = rhs.item2index;
+        return *this;
+    }
 
-	void swapComparator(const std::function<bool(const T, const T)>& comp_)
-	{
-		comp = comp_;
-		makeHeap();
-	}
+    void swapComparator(const std::function<bool(const T, const T)>& comp_)
+    {
+        comp = comp_;
+        makeHeap();
+    }
 
-	void update(T item)
-	{
-		for (int i = 0; i < c.size(); i++)
-		{
-			if (c[i] == item)
-			{
-				if (comp(c[i], c[parent(i)]))
-					pullUp(i);
-				else
-					pushDown(i);
-				break;
-			}
-		}
-	}
+    void update(T item)
+    {
+        if (item2index.find(item) == item2index.end()) {
+            return;
+        }
 
-	bool empty() const
-	{
-		return c.empty();
-	}
+        auto itemIndex = item2index[item];
+        if (comp(c[itemIndex], c[parent(itemIndex)]))
+            pullUp(itemIndex);
+        else
+            pushDown(itemIndex);
+    }
 
-	size_t size() const
-	{
-		return c.size();
-	}
+    bool empty() const { return c.empty(); }
 
-	const T top() const
-	{
-		return c.front();
-	}
+    size_t size() const { return c.size(); }
 
-	void push(const T item)
-	{
-		// If the size is at maximum capacity, find the worst item in the queue
-		if (c.size() == capacity)
-		{
-			int worstIndex = 0;
-			for (int i = 1; i < c.size(); i++)
-			{
-				if (comp(c[worstIndex], c[i]))
-				{
-					worstIndex = i;
-				}
-			}
+    size_t getItem2IndexMapSize() const { return item2index.size(); }
+    size_t getItem2IndexMapValue(T item) const { return item2index.at(item); }
 
-			// Check if the new item is better than the worst...
-			if (comp(item, c[worstIndex]))
-			{
-				// Erase the worst
-				swap(c[worstIndex], c[last()]);
-				c.erase(c.begin() + last());
-				if (comp(c[worstIndex], c[parent(worstIndex)]))
-					pullUp(worstIndex);
-				else
-					pushDown(worstIndex);
-			}
-			else
-			{
-				// If it isn't, do not add this item
-				return;
-			}
-		}
+    const T top() const { return c.front(); }
 
-		c.push_back(item);
-		pullUp(last());
-	}
+    void push(const T item)
+    {
+        // If the size is at maximum capacity, find the worst item in the queue
+        if (c.size() == capacity) {
+            size_t worstIndex = 0;
+            for (size_t i = 1; i < c.size(); i++) {
+                if (comp(c[worstIndex], c[i])) {
+                    worstIndex = i;
+                }
+            }
 
-	void pop()
-	{
-		if (c.empty())
-		{
-			return;
-		}
-		swap(c[0], c[last()]);
-		c.erase(c.begin() + last());
-		pushDown(0);
-	}
+            // Check if the new item is better than the worst...
+            if (comp(item, c[worstIndex])) {
+                // Erase the worst
+                swap2item(worstIndex, last());
 
-	void remove(T item)
-	{
-		for (int i = 0; i < c.size(); i++)
-		{
-			if (c[i] == item)
-			{
-				swap(c[i], c[last()]);
-				c.erase(c.begin() + last());
-				if (comp(c[i], c[parent(i)]))
-					pullUp(i);
-				else
-					pushDown(i);
-				break;
-			}
-		}
-	}
+                item2index.erase(c[last()]);
+                c.erase(c.begin() + static_cast<long int>(last()));
 
-	void clear()
-	{
-		while (!c.empty())
-		{
-			c.pop_back();
-		}
-	}
+                if (comp(c[worstIndex], c[parent(worstIndex)]))
+                    pullUp(worstIndex);
+                else
+                    pushDown(worstIndex);
+            } else {
+                // If it isn't, do not add this item
+                return;
+            }
+        }
 
-	typename vector<T>::iterator begin()
-	{
-		return c.begin();
-	}
+        c.push_back(item);
+        item2index[item] = c.size() - 1;
+        pullUp(last());
+    }
 
-	typename vector<T>::iterator end()
-	{
-		return c.end();
-	}
+    void pop()
+    {
+        if (c.empty()) {
+            return;
+        }
+        swap2item(0, last());
 
-	typename vector<T>::iterator find(T item)
-	{
-		for (int i = 0; i < c.size(); i++)
-		{
-			if (c[i] == item)
-				return c.begin() + i;
-		}
+        item2index.erase(c[last()]);
+        c.erase(c.begin() + static_cast<long int>(last()));
 
-		return c.end();
-	}
+        pushDown(0);
+    }
+
+    void remove(T item)
+    {
+        if (item2index.find(item) == item2index.end()) {
+            return;
+        }
+
+        auto itemIndex = item2index[item];
+        swap2item(item2index[item], last());
+        item2index.erase(c[last()]);
+        c.erase(c.begin() + static_cast<long int>(last()));
+
+        if (comp(c[itemIndex], c[parent(itemIndex)]))
+            pullUp(itemIndex);
+        else
+            pushDown(itemIndex);
+    }
+
+    void clear()
+    {
+        while (!c.empty()) {
+            c.pop_back();
+        }
+    }
+
+    typename vector<T>::iterator begin() { return c.begin(); }
+
+    typename vector<T>::iterator end() { return c.end(); }
+
+    typename vector<T>::iterator find(T item)
+    {
+        if (item2index.find(item) == item2index.end()) {
+            return c.end();
+        }
+
+        return c.begin() + static_cast<long int>(item2index[item]);
+    }
+
 private:
-	int last()
-	{
-		return c.size() - 1;
-	}
+    size_t last() { return c.size() - 1; }
 
-	int parent(int i)
-	{
-		return (i - 1) / 2;
-	}
+    size_t parent(size_t i) { return i > 1 ? (i - 1) / 2 : 0; }
 
-	int rightChild(int i)
-	{
-		return 2 * i + 2;
-	}
+    size_t rightChild(size_t i) { return static_cast<size_t>(2 * i + 2); }
 
-	int leftChild(int i)
-	{
-		return 2 * i + 1;
-	}
+    size_t leftChild(size_t i) { return static_cast<size_t>(2 * i + 1); }
 
-	void pullUp(int i)
-	{
-		if (comp(c[i], c[parent(i)]))
-		{
-			swap(c[i], c[parent(i)]);
-			pullUp(parent(i));
-		}
-	}
+    void swap2item(size_t a, size_t b)
+    {
+        item2index[c[a]] = b;
+        item2index[c[b]] = a;
+        swap(c[a], c[b]);
+    }
 
-	void pushDown(int i)
-	{
-		int smallesti = i;
+    void pullUp(size_t i)
+    {
+        if (comp(c[i], c[parent(i)])) {
+            swap2item(i, parent(i));
+            pullUp(parent(i));
+        }
+    }
 
-		if (rightChild(i) < c.size() && comp(c[rightChild(i)], c[smallesti]))
-		{
-			smallesti = rightChild(i);
-		}
+    void pushDown(size_t i)
+    {
+        size_t smallesti = i;
 
-		if (leftChild(i) < c.size() && comp(c[leftChild(i)], c[smallesti]))
-		{
-			smallesti = leftChild(i);
-		}
+        if (rightChild(i) < c.size() && comp(c[rightChild(i)], c[smallesti])) {
+            smallesti = rightChild(i);
+        }
 
-		if (smallesti != i)
-		{
-			swap(c[i], c[smallesti]);
-			pushDown(smallesti);
-		}
-	}
+        if (leftChild(i) < c.size() && comp(c[leftChild(i)], c[smallesti])) {
+            smallesti = leftChild(i);
+        }
 
-	void makeHeap()
-	{
-		for (int i = (c.size() / 2) - 1; i >= 0; i--)
-		{
-			pushDown(i);
-		}
-	}
+        if (smallesti != i) {
+            swap2item(i, smallesti);
+            pushDown(smallesti);
+        }
+    }
+
+    void makeHeap()
+    {
+        for (int i = (static_cast<int>(c.size()) / 2) - 1; i >= 0; i--) {
+            pushDown(static_cast<size_t>(i));
+        }
+    }
 };
