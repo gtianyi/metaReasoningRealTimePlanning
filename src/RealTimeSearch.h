@@ -1,5 +1,6 @@
 #pragma once
 #include "decisionAlgorithms/DecisionAlgorithm.h"
+#include "decisionAlgorithms/KBestBackup.h"
 #include "decisionAlgorithms/KBestBackup_faster.h"
 #include "utility/DiscreteDistribution.h"
 #include "utility/DiscreteDistributionDD.h"
@@ -10,22 +11,21 @@
 #include <set>
 #include <unordered_map>
 #include <vector>
-//#include "decisionAlgorithms/KBestBackup.h"
 //#include "decisionAlgorithms/NancyBackup.h"
 //#include "decisionAlgorithms/KbestBackupPersistency.h"
-#include "decisionAlgorithms/NancyDDDecision.h"
+//#include "decisionAlgorithms/NancyDDDecision.h"
 #include "decisionAlgorithms/ScalarBackup.h"
 #include "expansionAlgorithms/AStar.h"
-#include "expansionAlgorithms/BreadthFirst.h"
-#include "expansionAlgorithms/DepthFirst.h"
+//#include "expansionAlgorithms/BreadthFirst.h"
+//#include "expansionAlgorithms/DepthFirst.h"
 #include "expansionAlgorithms/ExpansionAlgorithm.h"
-#include "expansionAlgorithms/Risk.h"
-#include "expansionAlgorithms/RiskDD.h"
-#include "expansionAlgorithms/RiskDD_squish.h"
-#include "expansionAlgorithms/RiskIE.h"
+//#include "expansionAlgorithms/Risk.h"
+//#include "expansionAlgorithms/RiskDD.h"
+//#include "expansionAlgorithms/RiskDD_squish.h"
+//#include "expansionAlgorithms/RiskIE.h"
 #include "learningAlgorithms/Dijkstra.h"
-#include "learningAlgorithms/Dijkstra_distribution.h"
-#include "learningAlgorithms/Ignorance.h"
+//#include "learningAlgorithms/Dijkstra_distribution.h"
+//#include "learningAlgorithms/Ignorance.h"
 #include "learningAlgorithms/LearningAlgorithm.h"
 
 #include <cassert>
@@ -415,45 +415,46 @@ public:
         } else if (expansionModule == "f-hat") {
             expansionAlgo = make_shared<AStar<Domain, Node, TopLevelAction>>(
               domain, lookahead, "fhat");
-        } else if (expansionModule == "dfs") {
-            expansionAlgo =
-              make_shared<DepthFirst<Domain, Node, TopLevelAction>>(domain,
-                                                                    lookahead);
-        } else if (expansionModule == "bfs") {
-            expansionAlgo =
-              make_shared<BreadthFirst<Domain, Node, TopLevelAction>>(
-                domain, lookahead);
-        } else if (expansionModule == "risk") {
-            expansionAlgo = make_shared<Risk<Domain, Node, TopLevelAction>>(
-              domain, lookahead, 1);
-        } else if (expansionModule == "riskDD") {
-            expansionAlgo = make_shared<RiskDD<Domain, Node, TopLevelAction>>(
-              domain, lookahead, 1);
-        } else if (expansionModule == "riskDDSquish") {
-            expansionAlgo =
-              make_shared<RiskDDSquish<Domain, Node, TopLevelAction>>(
-                domain, lookahead, 1);
-        } else if (expansionModule == "ie") {
-            // expansionAlgo = make_shared<RiskIE<Domain, Node,
-            // TopLevelAction>>( domain, lookahead);
-            expansionAlgo = make_shared<AStar<Domain, Node, TopLevelAction>>(
-              domain, lookahead, "lowerconfidence");
+            /*} else if (expansionModule == "dfs") {*/
+            // expansionAlgo =
+            // make_shared<DepthFirst<Domain, Node, TopLevelAction>>(domain,
+            // lookahead);
+            //} else if (expansionModule == "bfs") {
+            // expansionAlgo =
+            // make_shared<BreadthFirst<Domain, Node, TopLevelAction>>(
+            // domain, lookahead);
+            //} else if (expansionModule == "risk") {
+            // expansionAlgo = make_shared<Risk<Domain, Node, TopLevelAction>>(
+            // domain, lookahead, 1);
+            //} else if (expansionModule == "riskDD") {
+            // expansionAlgo = make_shared<RiskDD<Domain, Node,
+            // TopLevelAction>>( domain, lookahead, 1);
+            //} else if (expansionModule == "riskDDSquish") {
+            // expansionAlgo =
+            // make_shared<RiskDDSquish<Domain, Node, TopLevelAction>>(
+            // domain, lookahead, 1);
+            //} else if (expansionModule == "ie") {
+            //// expansionAlgo = make_shared<RiskIE<Domain, Node,
+            //// TopLevelAction>>( domain, lookahead);
+            // expansionAlgo = make_shared<AStar<Domain, Node, TopLevelAction>>(
+            /*domain, lookahead, "lowerconfidence");*/
         } else {
             expansionAlgo = make_shared<AStar<Domain, Node, TopLevelAction>>(
               domain, lookahead, "f");
             DEBUG_MSG("not specified expansion module type, use Astart");
         }
 
-        if (learningModule == "none") {
-            learningAlgo =
-              make_shared<Ignorance<Domain, Node, TopLevelAction>>();
-        } else if (learningModule == "learn") {
+        // if (learningModule == "none") {
+        // learningAlgo =
+        // make_shared<Ignorance<Domain, Node, TopLevelAction>>();
+        //} else
+        if (learningModule == "learn") {
             learningAlgo =
               make_shared<Dijkstra<Domain, Node, TopLevelAction>>(domain);
-        } else if (learningModule == "learnDD") {
-            learningAlgo =
-              make_shared<DijkstraDistribution<Domain, Node, TopLevelAction>>(
-                domain);
+            /*} else if (learningModule == "learnDD") {*/
+            // learningAlgo =
+            // make_shared<DijkstraDistribution<Domain, Node, TopLevelAction>>(
+            /*domain);*/
         } else {
             learningAlgo =
               make_shared<Dijkstra<Domain, Node, TopLevelAction>>(domain);
@@ -467,22 +468,22 @@ public:
             decisionAlgo =
               make_shared<ScalarBackup<Domain, Node, TopLevelAction>>(
                 "bellman");
-        } else if (decisionModule == "nancy") {
-            decisionAlgo =
-              // make_shared<NancyBackup<Domain, Node, TopLevelAction>>(
-              // domain, lookahead);
-              make_shared<KBestBackup<Domain, Node, TopLevelAction>>(domain, 1,
-                                                                     lookahead);
-        } else if (decisionModule == "nancy-persist") {
-            decisionAlgo =
-              // make_shared<NancyBackup<Domain, Node, TopLevelAction>>(
-              // domain, lookahead);
-              make_shared<KBestBackup<Domain, Node, TopLevelAction>>(domain, 1,
-                                                                     lookahead);
-        } else if (decisionModule == "nancyDD") {
-            decisionAlgo =
-              make_shared<NancyDDDecision<Domain, Node, TopLevelAction>>(
-                domain, lookahead);
+            /*} else if (decisionModule == "nancy") {*/
+            // decisionAlgo =
+            //// make_shared<NancyBackup<Domain, Node, TopLevelAction>>(
+            //// domain, lookahead);
+            // make_shared<KBestBackup<Domain, Node, TopLevelAction>>(domain, 1,
+            // lookahead);
+            //} else if (decisionModule == "nancy-persist") {
+            // decisionAlgo =
+            //// make_shared<NancyBackup<Domain, Node, TopLevelAction>>(
+            //// domain, lookahead);
+            // make_shared<KBestBackup<Domain, Node, TopLevelAction>>(domain, 1,
+            // lookahead);
+            //} else if (decisionModule == "nancyDD") {
+            // decisionAlgo =
+            // make_shared<NancyDDDecision<Domain, Node, TopLevelAction>>(
+            /*domain, lookahead);*/
         } else {
             decisionAlgo =
               make_shared<ScalarBackup<Domain, Node, TopLevelAction>>(
