@@ -16,10 +16,10 @@ class AStar : public ExpansionAlgorithm<Domain, Node, TopLevelAction>
     typedef typename Domain::HashState Hash;
 
 public:
-    AStar(Domain& domain, double lookahead, string sorting)
-        : domain(domain)
-        , lookahead(lookahead)
-        , sortingFunction(sorting)
+    AStar(Domain& domain_, double lookahead_, string sorting_)
+        : domain(domain_)
+        , lookahead(lookahead_)
+        , sortingFunction(sorting_)
     {}
 
     void incrementLookahead() { lookahead++; }

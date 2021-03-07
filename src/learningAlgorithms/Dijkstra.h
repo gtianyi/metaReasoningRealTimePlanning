@@ -16,8 +16,8 @@ class Dijkstra : public LearningAlgorithm<Domain, Node, TopLevelAction>
     typedef typename Domain::HashState Hash;
 
 public:
-    Dijkstra(Domain& domain)
-        : domain(domain)
+    Dijkstra(Domain& domain_)
+        : domain(domain_)
     {}
 
     void learn(PriorityQueue<shared_ptr<Node>>              open,

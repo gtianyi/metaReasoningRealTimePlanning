@@ -13,4 +13,5 @@ class LearningAlgorithm
 public:
     virtual void learn(PriorityQueue<shared_ptr<Node>>              open,
                        unordered_map<State, shared_ptr<Node>, Hash> closed) = 0;
+    virtual ~LearningAlgorithm() = default;
 };

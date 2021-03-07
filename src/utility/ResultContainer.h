@@ -8,8 +8,8 @@ struct ResultContainer {
     queue<string> path;
     bool solutionFound;
     double solutionCost;
-    int nodesGenerated;
-    int nodesExpanded;
+    size_t nodesGenerated;
+    size_t nodesExpanded;
     vector<double> lookaheadCpuTime;
     double epsilonHGlobal;
     double epsilonDGlobal;

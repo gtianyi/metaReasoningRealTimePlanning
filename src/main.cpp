@@ -3,8 +3,6 @@
 #include "domain/InverseTilePuzzle.h"
 #include "domain/PancakePuzzle.h"
 #include "domain/RaceTrack.h"
-#include "domain/TreeWorld.h"
-#include "utility/DiscreteDistributionDD.h"
 #include "utility/cxxopts/include/cxxopts.hpp"
 #include <fstream>
 #include <iostream>
@@ -19,11 +17,12 @@ void getCpuStatistic(vector<double>& lookaheadCpuTime,
     sort(lookaheadCpuTime.begin(), lookaheadCpuTime.end());
 
     mean = accumulate(lookaheadCpuTime.begin(), lookaheadCpuTime.end(), 0.0) /
-           lookaheadCpuTime.size();
+           static_cast<double>(lookaheadCpuTime.size());
 
     for (int i = 1; i <= 100; i++) {
-        size_t percentID = static_cast<size_t>((static_cast<double>(i) / 100) *
-                                               (lookaheadCpuTime.size() - 1));
+        size_t percentID =
+          static_cast<size_t>((static_cast<double>(i) / 100) *
+                              static_cast<double>(lookaheadCpuTime.size() - 1));
         percentiles.push_back(lookaheadCpuTime[percentID]);
     }
 }
@@ -58,16 +57,13 @@ void parseResult(ResultContainer& res, string& outString, string algName)
 template<class Domain>
 ResultContainer startAlg(shared_ptr<Domain> domain_ptr, string expansionModule,
                          string learningModule, string decisionModule,
-                         double lookahead, string algName, double k = 1,
+                         double lookahead, double k = 1,
                          string beliefType = "normal")
 {
     shared_ptr<RealTimeSearch<Domain>> searchAlg =
       make_shared<RealTimeSearch<Domain>>(*domain_ptr, expansionModule,
                                           learningModule, decisionModule,
                                           lookahead, k, beliefType);
-
-    if (algName == "RiskDD" || algName == "RiskDDSquish")
-        DiscreteDistributionDD::readData<Domain>(domain_ptr);
 
     return searchAlg->search(1000 * 200 / static_cast<int>(lookahead));
 }
@@ -80,7 +76,7 @@ int main(int argc, char** argv)
     auto optionAdder = options.add_options();
 
     optionAdder("d,domain",
-                "domain type: treeWorld, slidingTile, pancake, racetrack",
+                "domain type: treeWorld, tile, pancake, racetrack",
                 cxxopts::value<std::string>()->default_value("racetrack"));
 
     optionAdder("s,subdomain",
@@ -152,7 +148,7 @@ int main(int argc, char** argv)
 
     ResultContainer res;
 
-    if (domain == "slidingTile") {
+    if (domain == "tile") {
 
         std::shared_ptr<SlidingTilePuzzle> world;
 
@@ -166,16 +162,7 @@ int main(int argc, char** argv)
 
         res = startAlg<SlidingTilePuzzle>(
           world, algorithmsConfig[alg][0], algorithmsConfig[alg][1],
-          algorithmsConfig[alg][2], lookaheadDepth, algorithmsConfig[alg][3], 1,
-          algorithmsConfig[alg][4]);
-
-    } else if (domain == "treeWorld") {
-
-        std::shared_ptr<TreeWorld> world = std::make_shared<TreeWorld>(cin);
-
-        res = startAlg<TreeWorld>(
-          world, algorithmsConfig[alg][0], algorithmsConfig[alg][1],
-          algorithmsConfig[alg][2], lookaheadDepth, algorithmsConfig[alg][3], 1,
+          algorithmsConfig[alg][2], lookaheadDepth, 1,
           algorithmsConfig[alg][4]);
 
     } else if (domain == "pancake") {
@@ -188,10 +175,10 @@ int main(int argc, char** argv)
             world->setVariant(2);
         }
 
-        res = startAlg<PancakePuzzle>(
-          world, algorithmsConfig[alg][0], algorithmsConfig[alg][1],
-          algorithmsConfig[alg][2], lookaheadDepth, algorithmsConfig[alg][3], 1,
-          algorithmsConfig[alg][4]);
+        res = startAlg<PancakePuzzle>(world, algorithmsConfig[alg][0],
+                                      algorithmsConfig[alg][1],
+                                      algorithmsConfig[alg][2], lookaheadDepth,
+                                      1, algorithmsConfig[alg][4]);
     } else if (domain == "racetrack") {
 
         string mapFile = "/home/aifs1/gu/phd/research/workingPaper/"
@@ -208,10 +195,10 @@ int main(int argc, char** argv)
         std::shared_ptr<RaceTrack> world =
           std::make_shared<RaceTrack>(map, cin);
 
-        res = startAlg<RaceTrack>(
-          world, algorithmsConfig[alg][0], algorithmsConfig[alg][1],
-          algorithmsConfig[alg][2], lookaheadDepth, algorithmsConfig[alg][3], 1,
-          algorithmsConfig[alg][4]);
+        res = startAlg<RaceTrack>(world, algorithmsConfig[alg][0],
+                                  algorithmsConfig[alg][1],
+                                  algorithmsConfig[alg][2], lookaheadDepth, 1,
+                                  algorithmsConfig[alg][4]);
     } else {
         cout
           << "Available domains are TreeWorld, slidingTile, pancake, racetrack"

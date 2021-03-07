@@ -24,4 +24,6 @@ public:
         PriorityQueue<shared_ptr<Node>>&, vector<shared_ptr<TopLevelAction>>&)>
                        duplicateDetection,
       ResultContainer& res) = 0;
+
+    virtual ~ExpansionAlgorithm() = default;
 };

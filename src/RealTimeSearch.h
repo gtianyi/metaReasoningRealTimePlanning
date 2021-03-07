@@ -1,9 +1,7 @@
 #pragma once
 #include "decisionAlgorithms/DecisionAlgorithm.h"
 #include "decisionAlgorithms/KBestBackup.h"
-#include "decisionAlgorithms/KBestBackup_faster.h"
 #include "utility/DiscreteDistribution.h"
-#include "utility/DiscreteDistributionDD.h"
 #include "utility/PriorityQueue.h"
 #include "utility/ResultContainer.h"
 #include <functional>
@@ -53,14 +51,12 @@ public:
         Cost             epsD;
         shared_ptr<Node> parent;
         State            stateRep;
-        int              owningTLA;
+        size_t           owningTLA;
         bool             open;
         int              delayCntr;
         // shared_ptr<DiscreteDistribution> distribution;
-        DiscreteDistribution   distribution;
-        DiscreteDistributionDD hStartDistribution;
-        DiscreteDistributionDD hStartDistribution_ps;
-        bool                   twoDistribtuionCleared;
+        DiscreteDistribution distribution;
+        bool                 twoDistribtuionCleared;
 
     public:
         Cost getGValue() const { return g; }
@@ -71,34 +67,14 @@ public:
         Cost getEpsilonH() const { return epsH; }
         Cost getEpsilonD() const { return epsD; }
         Cost getFHatValue() const { return g + getHHatValue(); }
-        Cost getFHatValueFromDist() const { return g + getHHatValueFromDist(); }
         Cost getDHatValue() const { return (derr / (1.0 - epsD)); }
         // Cost getDHatValue() const { return (derr / (1.0 - 0.18500444)); }
         Cost getHHatValue() const { return h + getDHatValue() * epsH; }
         // Cost getHHatValue() const { return h + getDHatValue() * 0.18500444; }
-        Cost getHHatValueFromDist() const
-        {
-            if (twoDistribtuionCleared)
-                return numeric_limits<double>::infinity();
-            return hStartDistribution.expectedCost();
-        }
+
         State            getState() const { return stateRep; }
         shared_ptr<Node> getParent() const { return parent; }
-        int              getOwningTLA() const { return owningTLA; }
-
-        DiscreteDistributionDD getHstartDistribution() const
-        {
-            return hStartDistribution;
-        }
-
-        DiscreteDistributionDD getHstartDistribution_ps() const
-        {
-            return hStartDistribution_ps;
-        }
-
-        /*shared_ptr<DiscreteDistribution> getAssumptionDistribution() const{*/
-        // return distribution;
-        /*}*/
+        size_t           getOwningTLA() const { return owningTLA; }
 
         void setHValue(Cost val) { h = val; }
         void setGValue(Cost val) { g = val; }
@@ -107,18 +83,8 @@ public:
         void setEpsilonH(Cost val) { epsH = val; }
         void setEpsilonD(Cost val) { epsD = val; }
         void setState(State s) { stateRep = s; }
-        void setOwningTLA(int tla) { owningTLA = tla; }
+        void setOwningTLA(size_t tla) { owningTLA = tla; }
         void setParent(shared_ptr<Node> p) { parent = p; }
-
-        void setHStartDistribution(const DiscreteDistributionDD& dist)
-        {
-            hStartDistribution = dist;
-        }
-
-        void setHStartDistribution_ps(const DiscreteDistributionDD& dist)
-        {
-            hStartDistribution_ps = dist;
-        }
 
         bool onOpen() { return open; }
         void close() { open = false; }
@@ -132,36 +98,20 @@ public:
         void markClearTwoDistribution() { twoDistribtuionCleared = true; }
         void markUnClearTwoDistribution() { twoDistribtuionCleared = false; }
 
-        Node(Cost g, Cost h, Cost d, Cost derr, Cost epsH, Cost epsD,
-             State state, shared_ptr<Node> parent, int tla)
-            : g(g)
-            , h(h)
-            , d(d)
-            , derr(derr)
-            , epsH(epsH)
-            , epsD(epsD)
-            , stateRep(state)
-            , parent(parent)
-            , owningTLA(tla)
+        Node(Cost g_, Cost h_, Cost d_, Cost derr_, Cost epsH_, Cost epsD_,
+             State state_, shared_ptr<Node> parent_, size_t tla_)
+            : g(g_)
+            , h(h_)
+            , d(d_)
+            , derr(derr_)
+            , epsH(epsH_)
+            , epsD(epsD_)
+            , parent(parent_)
+            , stateRep(state_)
+            , owningTLA(tla_)
         {
             open      = true;
             delayCntr = 0;
-        }
-
-        Node(Cost g, const DiscreteDistributionDD& hstartdist,
-             const DiscreteDistributionDD& hstartdist_ps, Cost h, State state,
-             shared_ptr<Node> parent, int tla)
-            : g(g)
-            , hStartDistribution(hstartdist)
-            , hStartDistribution_ps(hstartdist_ps)
-            , h(h)
-            , stateRep(state)
-            , parent(parent)
-            , owningTLA(tla)
-        {
-            open                   = true;
-            delayCntr              = 0;
-            twoDistribtuionCleared = false;
         }
 
         friend std::ostream& operator<<(std::ostream& stream, const Node& node)
@@ -284,6 +234,8 @@ public:
 
         TopLevelAction(const TopLevelAction& tla) { copy(tla); }
 
+        virtual ~TopLevelAction() = default;
+
         TopLevelAction& operator=(const TopLevelAction& rhs)
         {
             if (&rhs == this)
@@ -312,34 +264,6 @@ public:
               best->getFHatValue() - best->getFValue());
         };
 
-        virtual void setBeliefDD(const DiscreteDistributionDD&)
-        {
-            DEBUG_MSG("call set beliefDD from base TLA not TLADD: "
-                      "RealTimeSearch.h:247");
-            exit(1);
-        }
-
-        virtual void setBeliefDD_ps(const DiscreteDistributionDD&)
-        {
-            DEBUG_MSG("call set beliefDD_ps from base TLA not TLADD: "
-                      "RealTimeSearch.h:252");
-            exit(1);
-        }
-
-        virtual DiscreteDistributionDD getBeliefDD() const
-        {
-            DEBUG_MSG("call get beliefDD from base TLA not TLADD: "
-                      "RealTimeSearch.h:247");
-            exit(1);
-        }
-
-        virtual DiscreteDistributionDD getBeliefDD_ps() const
-        {
-            DEBUG_MSG("call get beliefDD_ps from base TLA not TLADD: "
-                      "RealTimeSearch.h:247");
-            exit(1);
-        }
-
     private:
         // shared_ptr<DiscreteDistribution> belief;
 
@@ -354,65 +278,21 @@ public:
         }
     };
 
-    struct TopLevelActionDD : public TopLevelAction
+    RealTimeSearch(Domain& domain_, string expansionModule_,
+                   string learningModule_, string decisionModule_,
+                   int lookahead_, double, string beliefType_ = "normal")
+        : domain(domain_)
+        , lookahead(lookahead_)
+        , beliefType(beliefType_)
+        , expansionPolicy(expansionModule_)
+        , learningPolicy(learningModule_)
+        , decisionPolicy(decisionModule_)
+
     {
-        TopLevelActionDD()
-        {
-            this->open_TLA.swapComparator(Node::compareNodesFHatFromDist);
-        }
-
-        DiscreteDistributionDD beliefDD;
-        DiscreteDistributionDD beliefDD_ps;
-
-        TopLevelActionDD(const TopLevelActionDD& tla)
-            : TopLevelAction(tla)
-        {
-            copy(tla);
-        }
-
-        TopLevelActionDD& operator=(const TopLevelActionDD& rhs)
-        {
-            if (&rhs == this)
-                return *this;
-            TopLevelAction::operator=(rhs);
-            copy(rhs);
-            return *this;
-        }
-
-        void copy(const TopLevelActionDD& tla)
-        {
-            beliefDD    = tla.beliefDD;
-            beliefDD_ps = tla.beliefDD_ps;
-        }
-
-        DiscreteDistributionDD getBeliefDD() const { return beliefDD; };
-        DiscreteDistributionDD getBeliefDD_ps() const { return beliefDD_ps; };
-
-        void setBeliefDD(const DiscreteDistributionDD& _belief)
-        {
-            beliefDD = _belief;
-        };
-
-        void setBeliefDD_ps(const DiscreteDistributionDD& _belief)
-        {
-            beliefDD_ps = _belief;
-        }
-    };
-
-    RealTimeSearch(Domain& domain, string expansionModule,
-                   string learningModule, string decisionModule,
-                   double lookahead, double, string beliefType = "normal")
-        : domain(domain)
-        , expansionPolicy(expansionModule)
-        , learningPolicy(learningModule)
-        , decisionPolicy(decisionModule)
-        , lookahead(lookahead)
-        , beliefType(beliefType)
-    {
-        if (expansionModule == "a-star") {
+        if (expansionModule_ == "a-star") {
             expansionAlgo = make_shared<AStar<Domain, Node, TopLevelAction>>(
               domain, lookahead, "f");
-        } else if (expansionModule == "f-hat") {
+        } else if (expansionModule_ == "f-hat") {
             expansionAlgo = make_shared<AStar<Domain, Node, TopLevelAction>>(
               domain, lookahead, "fhat");
             /*} else if (expansionModule == "dfs") {*/
@@ -448,7 +328,7 @@ public:
         // learningAlgo =
         // make_shared<Ignorance<Domain, Node, TopLevelAction>>();
         //} else
-        if (learningModule == "learn") {
+        if (learningModule_ == "learn") {
             learningAlgo =
               make_shared<Dijkstra<Domain, Node, TopLevelAction>>(domain);
             /*} else if (learningModule == "learnDD") {*/
@@ -460,11 +340,11 @@ public:
               make_shared<Dijkstra<Domain, Node, TopLevelAction>>(domain);
         }
 
-        if (decisionModule == "minimin") {
+        if (decisionModule_ == "minimin") {
             decisionAlgo =
               make_shared<ScalarBackup<Domain, Node, TopLevelAction>>(
                 "minimin");
-        } else if (decisionModule == "bellman") {
+        } else if (decisionModule_ == "bellman") {
             decisionAlgo =
               make_shared<ScalarBackup<Domain, Node, TopLevelAction>>(
                 "bellman");
@@ -510,12 +390,9 @@ public:
               domain.epsilonHGlobal(), domain.epsilonDGlobal(),
               domain.getStartState(), nullptr, -1);
 
-        } else if (beliefType == "data") {
-            start = make_shared<Node>(
-              0, domain.hstart_distribution(domain.getStartState()),
-              domain.hstart_distribution_ps(domain.getStartState()),
-              domain.heuristic(domain.getStartState()), domain.getStartState(),
-              nullptr, -1);
+        } else {
+            cout << "unsupported belief type: " << beliefType << endl;
+            exit(1);
         }
 
         int count = 0;
@@ -557,10 +434,6 @@ public:
                 expansionAlgo->expand(open, closed, tlas, duplicateDetection,
                                       res);
                 // DEBUG_MSG("after lookahead");
-            } else if (beliefType == "data") {
-                generateTopLevelActionsDD(start, res);
-                expansionAlgo->expand(open, closed, tlas, duplicateDetectionDD,
-                                      res);
             } else {
                 DEBUG_MSG("Realtime search main loop line 370: wrong "
                           "belief "
@@ -789,57 +662,6 @@ private:
         }
     }
 
-    void generateTopLevelActionsDD(shared_ptr<Node> start, ResultContainer& res)
-    {
-        // The first node to be expanded in any problem is the start node
-        // Doing so yields the top level actions
-        start->close();
-        closed[start->getState()] = start;
-        res.nodesExpanded++;
-
-        vector<State> children = domain.successors(start->getState());
-        res.nodesGenerated += children.size();
-
-        if (children.size() == 0) {
-            cerr << "dead end, no TLA kid!\n";
-            exit(1);
-        }
-
-        for (State child : children) {
-            shared_ptr<Node> childNode = make_shared<Node>(
-              start->getGValue() + domain.getEdgeCost(child),
-              domain.hstart_distribution(child),
-              domain.hstart_distribution_ps(child), domain.heuristic(child),
-              child, start, tlas.size());
-
-            // No top level action will ever be a duplicate, so no need to
-            // check.
-            // Make a new top level action and push this node onto its open
-            shared_ptr<TopLevelAction> tla = make_shared<TopLevelActionDD>();
-
-            tla->topLevelNode = childNode;
-
-            childNode->hStartDistribution = domain.hstart_distribution(child);
-
-            childNode->hStartDistribution_ps =
-              domain.hstart_distribution_ps(child);
-
-            tla->expectedMinimumPathCost =
-              childNode->hStartDistribution.expectedCost() +
-              childNode->getGValue();
-
-            tla->h_TLA = childNode->getHValue();
-
-            // Push this node onto open and closed
-            closed[child] = childNode;
-            open.push(childNode);
-            tla->open_TLA.push(childNode);
-
-            // Add this top level action to the list
-            tlas.push_back(tla);
-        }
-    }
-
     void restartLists(shared_ptr<Node> start)
     {
         // clear the TLA list
@@ -884,7 +706,7 @@ protected:
     unordered_map<State, shared_ptr<Node>, Hash>                 closed;
     vector<shared_ptr<TopLevelAction>>                           tlas;
 
-    double lookahead;
+    int    lookahead;
     string beliefType;
     string expansionPolicy;
     string learningPolicy;

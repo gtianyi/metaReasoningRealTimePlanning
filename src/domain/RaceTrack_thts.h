@@ -384,49 +384,6 @@ public:
         return avg;
     }
 
-
-    DiscreteDistributionDD hstart_distribution(const State& state) {
-		// Check if the heuristic h-hat of this state has been updated
-		if (correctedDistribution.find(state) != correctedDistribution.end()) {
-			return correctedDistribution[state];
-		}
-
-		Cost h = round(dijkstraMaxH(state));
-
-		correctedDistribution[state] = DiscreteDistributionDD(h);
-		correctedPostSearchDistribution[state] = DiscreteDistributionDD(h,true);
-
-		updateHeuristic(state, h);
-
-		return correctedDistribution[state];
-    }
-
-    DiscreteDistributionDD hstart_distribution_ps(const State& state) {
-     	 // Check if the heuristic h-hat of this state has been updated
-		if (correctedDistribution.find(state) != correctedDistribution.end()) {
-			return correctedDistribution[state];
-		}
-
-		Cost h = round(dijkstraMaxH(state));
-
-		correctedDistribution[state] = DiscreteDistributionDD(h);
-		correctedPostSearchDistribution[state] = DiscreteDistributionDD(h,true);
-
-		return correctedPostSearchDistribution[state];
-    }
-
-    pair<DiscreteDistributionDD, DiscreteDistributionDD>
-    update_two_distribution(const State& state, const State& pred, Cost value) {
-         correctedDistribution[state] =
-         DiscreteDistributionDD(correctedDistribution[pred], value);
-		correctedPostSearchDistribution[state] = DiscreteDistributionDD(
-				correctedPostSearchDistribution[pred], value);
-
-		return make_pair(correctedDistribution[state],
-				correctedPostSearchDistribution[state]);
-    }
-
-
     string getSubDomainName() const { return ""; }
 
     string getDistributionFile() const {
@@ -551,7 +508,7 @@ private:
     }
 
     void computeDijkstraMap() {
-		vector<int> col(mapHeight, INT_MAX);
+		vector<int> col(mapHeight, MY_INT_MAX);
         dijkstraMap = vector<vector<int>>(mapWidth, col);
 
         for (const auto& g : finishline) {
