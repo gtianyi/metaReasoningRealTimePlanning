@@ -25,8 +25,8 @@ class RaceTrack
 
 public:
     typedef double        Cost;
-    static constexpr Cost COST_MAX = std::numeric_limits<Cost>::max();
-    static constexpr int  MY_INT_MAX  = std::numeric_limits<int>::max();
+    static constexpr Cost COST_MAX   = std::numeric_limits<Cost>::max();
+    static constexpr int  MY_INT_MAX = std::numeric_limits<int>::max();
 
     class State
     {
@@ -163,7 +163,19 @@ public:
         return correctedDerr[state];
     }
 
-    Cost heuristic(const State& state) { return getPreComputedCost(state); }
+    Cost heuristic(const State& state)
+    {
+        // Check if the heuristic of this state has been updated
+        if (correctedH.find(state) != correctedH.end()) {
+            return correctedH[state];
+        }
+
+        Cost h = getPreComputedCost(state);
+
+        updateHeuristic(state, h);
+
+        return correctedH[state];
+    }
 
     Cost epsilonHGlobal() { return curEpsilonH; }
 
