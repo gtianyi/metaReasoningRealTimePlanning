@@ -65,3 +65,7 @@ ninja <executable>
 ```
 bin/<executable>
 ```
+
+# Problem Instances
+All the problem instance file can be found [here](https://github.com/gtianyi/searchDomainInstanceFiles)
+
