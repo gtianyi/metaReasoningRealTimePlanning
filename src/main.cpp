@@ -201,20 +201,20 @@ int main(int argc, char** argv)
                                   algorithmsConfig[alg][4]);
     } else if (domain == "gridPathfinding") {
 
-        string mapFile =
-          "/home/aifs1/gu/phd/research/workingPaper/"
-          "realtime-nancy/worlds/gridPathfinding/exampleworlds/small-1.gp";
-        //+ subDomain + ".gp";
+        /*string mapFile =*/
+          //"/home/aifs1/gu/phd/research/workingPaper/"
+          //"realtime-nancy/worlds/gridPathfinding/exampleworlds/small-1.gp";
+        ////+ subDomain + ".gp";
 
-        ifstream map(mapFile);
+        //ifstream map(mapFile);
 
-        if (!map.good()) {
-            cout << "map file not exist: " << mapFile << endl;
-            exit(1);
-        }
+        //if (!map.good()) {
+            //cout << "map file not exist: " << mapFile << endl;
+            //exit(1);
+        /*}*/
 
         std::shared_ptr<GridPathfinding> world =
-          std::make_shared<GridPathfinding>(map, cin);
+          std::make_shared<GridPathfinding>(cin);
 
         res = startAlg<GridPathfinding>(world, algorithmsConfig[alg][0],
                                   algorithmsConfig[alg][1],
@@ -222,7 +222,7 @@ int main(int argc, char** argv)
                                   algorithmsConfig[alg][4]);
     } else {
         cout
-          << "Available domains are TreeWorld, slidingTile, pancake, racetrack"
+          << "Available domains are TreeWorld, slidingTile, pancake, racetrack, gridPathfinding"
           << endl;
         exit(1);
     }

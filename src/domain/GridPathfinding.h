@@ -88,8 +88,11 @@ public:
             return to_string(x) + " " + to_string(y) + "\n ";
         }
 
+        void markStart() { label = 's'; }
+
     private:
         size_t             x, y;
+        char               label;
         unsigned long long theKey =
           std::numeric_limits<unsigned long long>::max();
     };
@@ -247,21 +250,21 @@ public:
             }
         }
 
-        /*// recording predecessor*/
-        // for (const auto& succ : successors) {
-        // predecessorsTable[succ].push_back(state);
-        /*}*/
+        // recording predecessor
+        for (const auto& succ : successors) {
+            predecessorsTable[succ].push_back(state);
+        }
 
         return successors;
     }
 
-    /*const std::vector<State> predecessors(const State& state) const*/
-    //{
-    //// DEBUG_MSG("preds table size: "<<predecessorsTable.size());
-    // if (predecessorsTable.find(state) != predecessorsTable.end())
-    // return predecessorsTable.at(state);
-    // return vector<State>();
-    /*}*/
+    const std::vector<State> predecessors(const State& state) const
+    {
+        // DEBUG_MSG("preds table size: "<<predecessorsTable.size());
+        if (predecessorsTable.find(state) != predecessorsTable.end())
+            return predecessorsTable.at(state);
+        return vector<State>();
+    }
 
     const State getStartState() const { return startState; }
 
@@ -366,6 +369,9 @@ private:
 
         cout << "size: " << mapWidth << "x" << mapHeight << "\n";
         cout << "blocked: " << blockedCells.size() << "\n";
+        cout << "goalX: " << goalX << "goalY: " << goalY << "\n";
+        cout << "startX: " << startLocation.first
+             << "startY: " << startLocation.second << "\n";
 
         startState = State(startLocation.first, startLocation.second);
     }
@@ -393,11 +399,11 @@ private:
 
     // int costVariant;
 
-    SlidingWindow<int>                    expansionDelayWindow;
-    unordered_map<State, Cost, HashState> correctedH;
-    unordered_map<State, Cost, HashState> correctedD;
-    unordered_map<State, Cost, HashState> correctedDerr;
-    // unordered_map<State, vector<State>, HashState> predecessorsTable;
+    SlidingWindow<int>                             expansionDelayWindow;
+    unordered_map<State, Cost, HashState>          correctedH;
+    unordered_map<State, Cost, HashState>          correctedD;
+    unordered_map<State, Cost, HashState>          correctedDerr;
+    unordered_map<State, vector<State>, HashState> predecessorsTable;
 
     double epsilonHSum;
     // double epsilonHSumSq;
