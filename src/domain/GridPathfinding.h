@@ -340,8 +340,6 @@ private:
         stringstream ss2(line);
         ss2 >> mapHeight;
 
-        std::unordered_set<Location, pair_hash> dirts;
-
         for (size_t y = 0; y < mapHeight; y++) {
 
             getline(input, line);

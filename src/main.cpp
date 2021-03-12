@@ -1,4 +1,5 @@
 #include "RealTimeSearch.h"
+#include "domain/GridPathfinding.h"
 #include "domain/HeavyTilePuzzle.h"
 #include "domain/InverseTilePuzzle.h"
 #include "domain/PancakePuzzle.h"
@@ -75,8 +76,7 @@ int main(int argc, char** argv)
 
     auto optionAdder = options.add_options();
 
-    optionAdder("d,domain",
-                "domain type: treeWorld, tile, pancake, racetrack",
+    optionAdder("d,domain", "domain type: treeWorld, tile, pancake, racetrack",
                 cxxopts::value<std::string>()->default_value("racetrack"));
 
     optionAdder("s,subdomain",
@@ -196,6 +196,27 @@ int main(int argc, char** argv)
           std::make_shared<RaceTrack>(map, cin);
 
         res = startAlg<RaceTrack>(world, algorithmsConfig[alg][0],
+                                  algorithmsConfig[alg][1],
+                                  algorithmsConfig[alg][2], lookaheadDepth, 1,
+                                  algorithmsConfig[alg][4]);
+    } else if (domain == "gridPathfinding") {
+
+        string mapFile =
+          "/home/aifs1/gu/phd/research/workingPaper/"
+          "realtime-nancy/worlds/gridPathfinding/exampleworlds/small-1.gp";
+        //+ subDomain + ".gp";
+
+        ifstream map(mapFile);
+
+        if (!map.good()) {
+            cout << "map file not exist: " << mapFile << endl;
+            exit(1);
+        }
+
+        std::shared_ptr<GridPathfinding> world =
+          std::make_shared<GridPathfinding>(map, cin);
+
+        res = startAlg<GridPathfinding>(world, algorithmsConfig[alg][0],
                                   algorithmsConfig[alg][1],
                                   algorithmsConfig[alg][2], lookaheadDepth, 1,
                                   algorithmsConfig[alg][4]);
