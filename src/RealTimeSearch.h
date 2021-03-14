@@ -1,6 +1,11 @@
 #pragma once
 #include "decisionAlgorithms/DecisionAlgorithm.h"
 #include "decisionAlgorithms/KBestBackup.h"
+#include "decisionAlgorithms/ScalarBackup.h"
+#include "expansionAlgorithms/AStar.h"
+#include "expansionAlgorithms/ExpansionAlgorithm.h"
+#include "learningAlgorithms/Dijkstra.h"
+#include "learningAlgorithms/LearningAlgorithm.h"
 #include "utility/DiscreteDistribution.h"
 #include "utility/PriorityQueue.h"
 #include "utility/ResultContainer.h"
@@ -9,22 +14,6 @@
 #include <set>
 #include <unordered_map>
 #include <vector>
-//#include "decisionAlgorithms/NancyBackup.h"
-//#include "decisionAlgorithms/KbestBackupPersistency.h"
-//#include "decisionAlgorithms/NancyDDDecision.h"
-#include "decisionAlgorithms/ScalarBackup.h"
-#include "expansionAlgorithms/AStar.h"
-//#include "expansionAlgorithms/BreadthFirst.h"
-//#include "expansionAlgorithms/DepthFirst.h"
-#include "expansionAlgorithms/ExpansionAlgorithm.h"
-//#include "expansionAlgorithms/Risk.h"
-//#include "expansionAlgorithms/RiskDD.h"
-//#include "expansionAlgorithms/RiskDD_squish.h"
-//#include "expansionAlgorithms/RiskIE.h"
-#include "learningAlgorithms/Dijkstra.h"
-//#include "learningAlgorithms/Dijkstra_distribution.h"
-//#include "learningAlgorithms/Ignorance.h"
-#include "learningAlgorithms/LearningAlgorithm.h"
 
 #include <cassert>
 #include <ctime>
@@ -43,18 +32,17 @@ public:
 
     struct Node
     {
-        Cost             g;
-        Cost             h;
-        Cost             d;
-        Cost             derr;
-        Cost             epsH;
-        Cost             epsD;
-        shared_ptr<Node> parent;
-        State            stateRep;
-        size_t           owningTLA;
-        bool             open;
-        int              delayCntr;
-        // shared_ptr<DiscreteDistribution> distribution;
+        Cost                 g;
+        Cost                 h;
+        Cost                 d;
+        Cost                 derr;
+        Cost                 epsH;
+        Cost                 epsD;
+        shared_ptr<Node>     parent;
+        State                stateRep;
+        size_t               owningTLA;
+        bool                 open;
+        int                  delayCntr;
         DiscreteDistribution distribution;
         bool                 twoDistribtuionCleared;
 
@@ -68,9 +56,7 @@ public:
         Cost getEpsilonD() const { return epsD; }
         Cost getFHatValue() const { return g + getHHatValue(); }
         Cost getDHatValue() const { return (derr / (1.0 - epsD)); }
-        // Cost getDHatValue() const { return (derr / (1.0 - 0.18500444)); }
         Cost getHHatValue() const { return h + getDHatValue() * epsH; }
-        // Cost getHHatValue() const { return h + getDHatValue() * 0.18500444; }
 
         State            getState() const { return stateRep; }
         shared_ptr<Node> getParent() const { return parent; }
@@ -409,11 +395,6 @@ public:
 
             count++;
 
-            // if (beliefType == "data") {
-            // DEBUG_MSG( "rl loop " << count << "h "
-            //<< start->getFValue() - start->getGValue() );
-            //}
-
             // Check if a goal has been reached
             if (domain.isGoal(start->getState())) {
                 res.solutionFound  = true;
@@ -435,9 +416,8 @@ public:
                                       res);
                 // DEBUG_MSG("after lookahead");
             } else {
-                DEBUG_MSG("Realtime search main loop line 370: wrong "
-                          "belief "
-                          "type!!!");
+                DEBUG_MSG(
+                  "Realtime search main loop line 370: wrong belief type!!!");
                 exit(1);
             }
 
@@ -448,10 +428,6 @@ public:
 
             // Decision-making Phase
             start = decisionAlgo->backup(open, tlas, start, closed);
-
-            // DEBUG_MSG( "after decision");
-            /*DEBUG_MSG( "h " << start->getHValue() << " hat "*/
-            //<< start->getHHatValueFromDist() );
 
             DEBUG_MSG("iteration: " << count);
 
@@ -466,11 +442,6 @@ public:
             res.lookaheadCpuTime.push_back(double(clock() - startTime) /
                                            CLOCKS_PER_SEC);
         }
-
-        // cout<<"iteration: " << count<<endl;
-
-        // if (count >= iterationlimit)
-        // noSolutionFound(res);
 
         return res;
     }
@@ -599,9 +570,6 @@ private:
             exit(1);
         }
 
-        // DEBUG_MSG( "cur " << start->getState().toString()
-        //<< " kids: " << children.size() << "\n";
-
         State bestChild;
         Cost  bestF = numeric_limits<double>::infinity();
 
@@ -612,16 +580,10 @@ private:
               domain.heuristic(child), domain.distance(child),
               domain.distanceErr(child), domain.epsilonHGlobal(),
               domain.epsilonDGlobal(), child, start, tlas.size());
-
-            // DEBUG_MSG("TLA kid F: " << childNode->getFValue());
-            // DEBUG_MSG("TLA kid G: " << childNode->getGValue());
-            // DEBUG_MSG("TLA kid H: " << childNode->getHValue());
-
+         
             if (childNode->getFValue() < bestF) {
                 bestF     = childNode->getFValue();
                 bestChild = child;
-                // DEBUG_MSG("TLA kids copied to best, child" << child);
-                // DEBUG_MSG("TLA kids copied to best, best" << bestChild);
             }
 
             // No top level action will ever be a duplicate, so no need to
@@ -629,14 +591,7 @@ private:
             // Make a new top level action and push this node onto its open
             shared_ptr<TopLevelAction> tla = make_shared<TopLevelAction>();
             tla->topLevelNode              = childNode;
-
-            /*   childNode->distribution =
-             * make_shared<DiscreteDistribution>(100,*/
-            // childNode->getFValue(),
-            // childNode->getFHatValue(),
-            // childNode->getDValue(),
-            // childNode->getFHatValue() - childNode->getFValue());
-
+            
             tla->expectedMinimumPathCost = childNode->getFHatValue();
 
             // Push this node onto open and closed
@@ -647,8 +602,6 @@ private:
             // Add this top level action to the list
             tlas.push_back(tla);
         }
-
-        // DEBUG_MSG("best TLA kids " << bestChild);
 
         // Learn one-step error
         if (!children.empty()) {
