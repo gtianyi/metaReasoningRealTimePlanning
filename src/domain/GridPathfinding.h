@@ -85,7 +85,7 @@ public:
 
         std::string toString() const
         {
-            return to_string(x) + " " + to_string(y) + "\n ";
+            return to_string(x) + " " + to_string(y) + "\n";
         }
 
         void markStart() { label = 's'; }
