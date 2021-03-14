@@ -383,6 +383,8 @@ public:
 
         int count = 0;
 
+        queue<Node*> actionQueue;
+
         // while (count <= iterationlimit) {
         while (1) {
             clock_t startTime = clock();
@@ -408,18 +410,8 @@ public:
 
             // Exploration Phase
             domain.updateEpsilons();
-
-            if (beliefType == "normal") {
-                generateTopLevelActions(start, res);
-                // DEBUG_MSG("after gen tlas");
-                expansionAlgo->expand(open, closed, tlas, duplicateDetection,
-                                      res);
-                // DEBUG_MSG("after lookahead");
-            } else {
-                DEBUG_MSG(
-                  "Realtime search main loop line 370: wrong belief type!!!");
-                exit(1);
-            }
+            generateTopLevelActions(start, res);
+            expansionAlgo->expand(open, closed, tlas, duplicateDetection, res);
 
             // Check if this is a dead end
             if (open.empty()) {
@@ -427,17 +419,50 @@ public:
             }
 
             // Decision-making Phase
-            start = decisionAlgo->backup(open, tlas, start, closed);
+            // check how many of the prefix should be commit
+            auto commitQueue =
+              metaReasoningDecisionAlgo->backup(open, tlas, start, closed);
+
+            // four metaReasoningDecisionAlgo
+            // 1. allways commit one, just like old nancy code
+            // 2. allways commit to frontier,  modify old nancy code 
+            //    to return all nodes from root to the best frontier
+            // 3. fhat-pmr: need nancy backup from all frontier and 
+            //    make decision on whether to commit each prefix based 
+            //    on the hack rule 
+            // 4. our approach: compute benefit of doing more search
+
+            // this loop should not happen for approach 1-3
+            while (commitQueue.empty() && !actionQueue.empty()) {
+                expansionAlgo->expand(open, closed, tlas, duplicateDetection,
+                                      res);
+                commitQueue =
+                  metaReasoningDecisionAlgo->backup(open, tlas, start, closed);
+                actionQueue.pop();
+            }
+
+            if (commitQueue.empty() && actionQueue.empty()) {
+                // force to commit at least one action
+                start = decisionAlgo->backup(open, tlas, start, closed);
+                actionQueue.push(start);
+
+                // Add this step to the path taken so far
+                res.path.push(start->getState().toString());
+                res.solutionCost += start->getGValue();
+
+            } else {
+                start = commitQueue.end();
+                actionQueue.appending(commitQueue);
+
+                // Add this step to the path taken so far
+                res.path.push(allCommitQueueNodes->getState().toString());
+                res.solutionCost += start->getGValue();
+            }
 
             DEBUG_MSG("iteration: " << count);
 
             // LearninH Phase
             learningAlgo->learn(open, closed);
-
-            // Add this step to the path taken so far
-            // res.path.push(start->getState().getLabel());
-            res.path.push(start->getState().toString());
-            res.solutionCost += start->getGValue();
 
             res.lookaheadCpuTime.push_back(double(clock() - startTime) /
                                            CLOCKS_PER_SEC);
@@ -580,7 +605,7 @@ private:
               domain.heuristic(child), domain.distance(child),
               domain.distanceErr(child), domain.epsilonHGlobal(),
               domain.epsilonDGlobal(), child, start, tlas.size());
-         
+
             if (childNode->getFValue() < bestF) {
                 bestF     = childNode->getFValue();
                 bestChild = child;
@@ -591,7 +616,7 @@ private:
             // Make a new top level action and push this node onto its open
             shared_ptr<TopLevelAction> tla = make_shared<TopLevelAction>();
             tla->topLevelNode              = childNode;
-            
+
             tla->expectedMinimumPathCost = childNode->getFHatValue();
 
             // Push this node onto open and closed
