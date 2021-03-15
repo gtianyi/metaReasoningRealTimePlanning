@@ -410,8 +410,9 @@ public:
 
             // Exploration Phase
             domain.updateEpsilons();
-            generateTopLevelActions(start, res);
-            expansionAlgo->expand(open, closed, tlas, duplicateDetection, res);
+            // generateTopLevelActions(start, res);
+            metaReasoningExpansionAlgo->expand(open, closed, duplicateDetection,
+                                               res);
 
             // Check if this is a dead end
             if (open.empty()) {
@@ -425,39 +426,34 @@ public:
 
             // four metaReasoningDecisionAlgo
             // 1. allways commit one, just like old nancy code
-            // 2. allways commit to frontier,  modify old nancy code 
+            // 2. allways commit to frontier,  modify old nancy code
             //    to return all nodes from root to the best frontier
-            // 3. fhat-pmr: need nancy backup from all frontier and 
-            //    make decision on whether to commit each prefix based 
-            //    on the hack rule 
+            // 3. fhat-pmr: need nancy backup from all frontier and
+            //    make decision on whether to commit each prefix based
+            //    on the hack rule
             // 4. our approach: compute benefit of doing more search
 
             // this loop should not happen for approach 1-3
             while (commitQueue.empty() && !actionQueue.empty()) {
-                expansionAlgo->expand(open, closed, tlas, duplicateDetection,
-                                      res);
-                commitQueue =
-                  metaReasoningDecisionAlgo->backup(open, tlas, start, closed);
+                metaReasoningExpansionAlgo->expand(open, closed,
+                                                   duplicateDetection, res);
+                commitQueue = metaReasoningDecisionAlgo->backup(
+                  open, start, closed, "not force Commit");
                 actionQueue.pop();
             }
 
-            if (commitQueue.empty() && actionQueue.empty()) {
+            if (commitQueue.empty()) {
                 // force to commit at least one action
-                start = decisionAlgo->backup(open, tlas, start, closed);
-                actionQueue.push(start);
-
-                // Add this step to the path taken so far
-                res.path.push(start->getState().toString());
-                res.solutionCost += start->getGValue();
-
-            } else {
-                start = commitQueue.end();
-                actionQueue.appending(commitQueue);
-
-                // Add this step to the path taken so far
-                res.path.push(allCommitQueueNodes->getState().toString());
-                res.solutionCost += start->getGValue();
+                commitQueue = metaReasoningDecisionAlgo->backup(
+                  open, start, closed, "force Commit");
             }
+
+            start = commitQueue.end();
+            actionQueue.appending(commitQueue);
+
+            // Add this step to the path taken so far
+            res.path.push(allCommitQueueNodes->getState().toString());
+            res.solutionCost += start->getGValue();
 
             DEBUG_MSG("iteration: " << count);
 
