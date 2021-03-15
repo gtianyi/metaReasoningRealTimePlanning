@@ -198,12 +198,10 @@ public:
         }
     };
 
-    RealTimeSearch(Domain& domain_, string expansionModule_,
-                   string learningModule_, string decisionModule_,
+    RealTimeSearch(Domain& domain_, string decisionModule_,
                    int lookahead_, double, string beliefType_ = "normal")
         : domain(domain_)
         , lookahead(lookahead_)
-        , beliefType(beliefType_)
         , decisionPolicy(decisionModule_)
 
     {
@@ -214,31 +212,23 @@ public:
           make_shared<MetaReasonDijkstra<Domain, Node>>(domain);
 
         metaReasonDecisionAlgo =
-              make_shared<ScalarBackup<Domain, Node>>(decisionModule_);
-        
+          make_shared<ScalarBackup<Domain, Node>>(decisionModule_);
     }
 
     ~RealTimeSearch() { clean(); }
 
     // p: iterationlimit
-    ResultContainer search(int)
+    ResultContainer search()
     {
         ResultContainer res;
 
         shared_ptr<Node> start;
 
-        if (beliefType == "normal") {
-            start = make_shared<Node>(
-              0, domain.heuristic(domain.getStartState()),
-              domain.distance(domain.getStartState()),
-              domain.distanceErr(domain.getStartState()),
-              domain.epsilonHGlobal(), domain.epsilonDGlobal(),
-              domain.getStartState(), nullptr, -1);
-
-        } else {
-            cout << "unsupported belief type: " << beliefType << endl;
-            exit(1);
-        }
+        start = make_shared<Node>(
+          0, domain.heuristic(domain.getStartState()),
+          domain.distance(domain.getStartState()),
+          domain.distanceErr(domain.getStartState()), domain.epsilonHGlobal(),
+          domain.epsilonDGlobal(), domain.getStartState(), nullptr, -1);
 
         int count = 0;
 
@@ -418,8 +408,5 @@ protected:
     unordered_map<State, shared_ptr<Node>, Hash>            closed;
 
     int    lookahead;
-    string beliefType;
-    // string expansionPolicy;
-    // string learningPolicy;
     string decisionPolicy;
 };

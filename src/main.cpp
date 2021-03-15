@@ -56,17 +56,14 @@ void parseResult(ResultContainer& res, string& outString, string algName)
 }
 
 template<class Domain>
-ResultContainer startAlg(shared_ptr<Domain> domain_ptr, string expansionModule,
-                         string learningModule, string decisionModule,
-                         double lookahead, double k = 1,
-                         string beliefType = "normal")
+ResultContainer startAlg(shared_ptr<Domain> domain_ptr, string decisionModule,
+                         double lookahead)
 {
     shared_ptr<RealTimeSearch<Domain>> searchAlg =
-      make_shared<RealTimeSearch<Domain>>(*domain_ptr, expansionModule,
-                                          learningModule, decisionModule,
-                                          lookahead, k, beliefType);
+      make_shared<RealTimeSearch<Domain>>(*domain_ptr, decisionModule,
+                                          lookahead);
 
-    return searchAlg->search(1000 * 200 / static_cast<int>(lookahead));
+    return searchAlg->search();
 }
 
 int main(int argc, char** argv)
@@ -85,9 +82,7 @@ int main(int argc, char** argv)
                 "racetrack map : barto-bigger, hanse-bigger-double, uniform",
                 cxxopts::value<std::string>()->default_value("barto-bigger"));
 
-    optionAdder("a,alg",
-                "realtime algorithm: bfs, astar, fhat, lsslrtastar, risk, "
-                "riskdd, riskddSquish, ie",
+    optionAdder("a,alg", "commit algorithm: one, alltheway, fhatpmr, dtrts",
                 cxxopts::value<std::string>()->default_value("risk"));
 
     optionAdder("l,lookahead", "expansion limit",
@@ -113,39 +108,6 @@ int main(int argc, char** argv)
     auto lookaheadDepth = args["lookahead"].as<int>();
     auto outPerfromence = args["performenceOut"].as<string>();
 
-    vector<string> bfsConfig{"bfs", "learn", "nancy", "BFS", "normal"};
-    vector<string> astarConfig{"a-star", "learn", "nancy", "A*", "normal"};
-    vector<string> fhatConfig{"f-hat", "learn", "nancy", "F-Hat", "normal"};
-    vector<string> lsslrtastarConfig{"a-star", "learn", "minimin", "LSS-LRTA*",
-                                     "normal"};
-    vector<string> riskConfig{"risk", "learn", "nancy", "Risk", "normal"};
-    vector<string> riskPersistConfig{"risk", "learn", "nancy-persist", "PRisk",
-                                     "normal"};
-    vector<string> riskddConfig{"riskDD", "learnDD", "nancyDD", "RiskDD",
-                                "data"};
-    vector<string> riskddSquishConfig{"riskDDSquish", "learnDD", "nancyDD",
-                                      "RiskDDSquish", "data"};
-    vector<string> intervalEstimationConfig{"ie", "learn", "nancy", "IE",
-                                            "normal"};
-
-    unordered_map<string, vector<string>> algorithmsConfig(
-      {{"bfs", bfsConfig},
-       {"ie", intervalEstimationConfig},
-       {"astar", astarConfig},
-       {"fhat", fhatConfig},
-       {"lsslrtastar", lsslrtastarConfig},
-       {"risk", riskConfig},
-       {"prisk", riskPersistConfig},
-       {"riskddSquish", riskddSquishConfig},
-       {"riskdd", riskddConfig}});
-
-    if (algorithmsConfig.find(alg) == algorithmsConfig.end()) {
-        cout << "Available algorithm are bfs, astar, fhat, lsslrtastar, "
-                "risk, riskdd, ie"
-             << endl;
-        exit(1);
-    }
-
     ResultContainer res;
 
     if (domain == "tile") {
@@ -160,10 +122,7 @@ int main(int argc, char** argv)
             world = std::make_shared<InverseTilePuzzle>(cin);
         }
 
-        res = startAlg<SlidingTilePuzzle>(
-          world, algorithmsConfig[alg][0], algorithmsConfig[alg][1],
-          algorithmsConfig[alg][2], lookaheadDepth, 1,
-          algorithmsConfig[alg][4]);
+        res = startAlg<SlidingTilePuzzle>(world, alg, lookaheadDepth);
 
     } else if (domain == "pancake") {
         std::shared_ptr<PancakePuzzle> world =
@@ -175,10 +134,7 @@ int main(int argc, char** argv)
             world->setVariant(2);
         }
 
-        res = startAlg<PancakePuzzle>(world, algorithmsConfig[alg][0],
-                                      algorithmsConfig[alg][1],
-                                      algorithmsConfig[alg][2], lookaheadDepth,
-                                      1, algorithmsConfig[alg][4]);
+        res = startAlg<PancakePuzzle>(world, alg, lookaheadDepth);
     } else if (domain == "racetrack") {
 
         string mapFile = "/home/aifs1/gu/phd/research/workingPaper/"
@@ -195,35 +151,29 @@ int main(int argc, char** argv)
         std::shared_ptr<RaceTrack> world =
           std::make_shared<RaceTrack>(map, cin);
 
-        res = startAlg<RaceTrack>(world, algorithmsConfig[alg][0],
-                                  algorithmsConfig[alg][1],
-                                  algorithmsConfig[alg][2], lookaheadDepth, 1,
-                                  algorithmsConfig[alg][4]);
+        res = startAlg<RaceTrack>(world, alg, lookaheadDepth);
     } else if (domain == "gridPathfinding") {
 
         /*string mapFile =*/
-          //"/home/aifs1/gu/phd/research/workingPaper/"
-          //"realtime-nancy/worlds/gridPathfinding/exampleworlds/small-1.gp";
+        //"/home/aifs1/gu/phd/research/workingPaper/"
+        //"realtime-nancy/worlds/gridPathfinding/exampleworlds/small-1.gp";
         ////+ subDomain + ".gp";
 
-        //ifstream map(mapFile);
+        // ifstream map(mapFile);
 
-        //if (!map.good()) {
-            //cout << "map file not exist: " << mapFile << endl;
-            //exit(1);
+        // if (!map.good()) {
+        // cout << "map file not exist: " << mapFile << endl;
+        // exit(1);
         /*}*/
 
         std::shared_ptr<GridPathfinding> world =
           std::make_shared<GridPathfinding>(cin);
 
-        res = startAlg<GridPathfinding>(world, algorithmsConfig[alg][0],
-                                  algorithmsConfig[alg][1],
-                                  algorithmsConfig[alg][2], lookaheadDepth, 1,
-                                  algorithmsConfig[alg][4]);
+        res = startAlg<GridPathfinding>(world, alg, lookaheadDepth);
     } else {
-        cout
-          << "Available domains are TreeWorld, slidingTile, pancake, racetrack, gridPathfinding"
-          << endl;
+        cout << "Available domains are TreeWorld, slidingTile, pancake, "
+                "racetrack, gridPathfinding"
+             << endl;
         exit(1);
     }
 
