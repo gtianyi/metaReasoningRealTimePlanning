@@ -1,11 +1,7 @@
 #pragma once
 #include "decisionAlgorithms/DecisionAlgorithm.h"
-#include "decisionAlgorithms/KBestBackup.h"
-#include "decisionAlgorithms/ScalarBackup.h"
-#include "expansionAlgorithms/AStar.h"
-#include "expansionAlgorithms/ExpansionAlgorithm.h"
-#include "learningAlgorithms/Dijkstra.h"
-#include "learningAlgorithms/LearningAlgorithm.h"
+#include "expansionAlgorithms/MetaReasonAStar.h"
+#include "learningAlgorithms/MetaReasonDijkstra.h"
 #include "utility/DiscreteDistribution.h"
 #include "utility/PriorityQueue.h"
 #include "utility/ResultContainer.h"
@@ -198,12 +194,9 @@ public:
         }
     };
 
-    RealTimeSearch(Domain& domain_, string decisionModule_,
-                   int lookahead_, double, string beliefType_ = "normal")
+    RealTimeSearch(Domain& domain_, string decisionModule_, int lookahead_)
         : domain(domain_)
         , lookahead(lookahead_)
-        , decisionPolicy(decisionModule_)
-
     {
         metaReasonExpansionAlgo =
           make_shared<MetaReasonAStar<Domain, Node>>(domain, lookahead, "f");
@@ -260,7 +253,7 @@ public:
             // Exploration Phase
             domain.updateEpsilons();
             // generateTopLevelActions(start, res);
-            metaReasoningExpansionAlgo->expand(open, closed, duplicateDetection,
+            metaReasonExpansionAlgo->expand(open, closed, duplicateDetection,
                                                res);
 
             // Check if this is a dead end
@@ -271,7 +264,7 @@ public:
             // Decision-making Phase
             // check how many of the prefix should be commit
             auto commitQueue =
-              metaReasoningDecisionAlgo->backup(open, tlas, start, closed);
+              metaReasonDecisionAlgo->backup(open, tlas, start, closed);
 
             // four metaReasoningDecisionAlgo
             // 1. allways commit one, just like old nancy code
@@ -284,16 +277,16 @@ public:
 
             // this loop should not happen for approach 1-3
             while (commitQueue.empty() && !actionQueue.empty()) {
-                metaReasoningExpansionAlgo->expand(open, closed,
+                metaReasonExpansionAlgo->expand(open, closed,
                                                    duplicateDetection, res);
-                commitQueue = metaReasoningDecisionAlgo->backup(
+                commitQueue = metaReasonDecisionAlgo->backup(
                   open, start, closed, "not force Commit");
                 actionQueue.pop();
             }
 
             if (commitQueue.empty()) {
                 // force to commit at least one action
-                commitQueue = metaReasoningDecisionAlgo->backup(
+                commitQueue = metaReasonDecisionAlgo->backup(
                   open, start, closed, "force Commit");
             }
 
@@ -307,7 +300,7 @@ public:
             DEBUG_MSG("iteration: " << count);
 
             // LearninH Phase
-            learningAlgo->learn(open, closed);
+            metaReasonLearningAlgo->learn(open, closed);
 
             res.lookaheadCpuTime.push_back(double(clock() - startTime) /
                                            CLOCKS_PER_SEC);
@@ -368,9 +361,6 @@ private:
 
     void restartLists(shared_ptr<Node> start)
     {
-        // clear the TLA list
-        tlas.clear();
-
         // Empty OPEN and CLOSED
         open.clear();
 
@@ -385,9 +375,6 @@ private:
 
     void clean()
     {
-        // clear the TLA list
-        tlas.clear();
-
         // Empty OPEN and CLOSED
         open.clear();
 
@@ -403,10 +390,11 @@ private:
 
 protected:
     Domain&                                                 domain;
-    shared_ptr<MetaReasoingDecisionAlgorithm<Domain, Node>> decisionAlgo;
+    shared_ptr<MetaReasoingDecisionAlgorithm<Domain, Node>> metaReasonDecisionAlgo;
+    shared_ptr<MetaReasonAStar<Domain, Node>> metaReasonExpansionAlgo;
+    shared_ptr<MetaReasonDijkstra<Domain, Node>> metaReasonLearningAlgo;
     PriorityQueue<shared_ptr<Node>>                         open;
     unordered_map<State, shared_ptr<Node>, Hash>            closed;
 
     int    lookahead;
-    string decisionPolicy;
 };

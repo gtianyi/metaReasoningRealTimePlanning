@@ -1,22 +1,21 @@
 #pragma once
 #include "../utility/PriorityQueue.h"
 #include "../utility/debug.h"
-#include "LearningAlgorithm.h"
 #include <functional>
 #include <memory>
 #include <unordered_map>
 
 using namespace std;
 
-template<class Domain, class Node, class TopLevelAction>
-class Dijkstra : public LearningAlgorithm<Domain, Node, TopLevelAction>
+template<class Domain, class Node>
+class MetaReasonDijkstra 
 {
     typedef typename Domain::State     State;
     typedef typename Domain::Cost      Cost;
     typedef typename Domain::HashState Hash;
 
 public:
-    Dijkstra(Domain& domain_)
+    MetaReasonDijkstra(Domain& domain_)
         : domain(domain_)
     {}
 

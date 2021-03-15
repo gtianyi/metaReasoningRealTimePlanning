@@ -9,7 +9,7 @@
 using namespace std;
 
 template<class Domain, class Node>
-class MetaReasonAStar: 
+class MetaReasonAStar
 {
     typedef typename Domain::State     State;
     typedef typename Domain::Cost      Cost;
@@ -54,9 +54,6 @@ public:
             open.pop();
             cur->close();
 
-            // Remove this node from the open list of any TLAs
-            tlas[cur->getOwningTLA()]->open_TLA.remove(cur);
-
             vector<State> children = domain.successors(cur->getState());
             res.nodesGenerated += children.size();
 
@@ -70,7 +67,7 @@ public:
                   domain.distanceErr(child), domain.epsilonHGlobal(),
                   domain.epsilonDGlobal(), child, cur, cur->getOwningTLA());
 
-                bool dup = duplicateDetection(childNode, closed, open, tlas);
+                bool dup = duplicateDetection(childNode, closed, open);
 
                 if (!dup && childNode->getFValue() < bestF) {
                     bestF     = childNode->getFValue();
@@ -81,9 +78,6 @@ public:
                 if (!dup) {
                     open.push(childNode);
                     closed[child] = childNode;
-
-                    // Add to open of generating TLA
-                    tlas[childNode->getOwningTLA()]->open_TLA.push(childNode);
                 }
             }
 
