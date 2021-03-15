@@ -147,6 +147,8 @@ public:
         puzzleVariant    = 0; // Default
         heuristicVariant = 0; // Default
         startState       = State(startOrdering, 0);
+
+        initialize();
     }
 
     /*
@@ -457,7 +459,7 @@ public:
         return "Unknow variant";
     }
 
-    void initialize(string policy, int la)
+    void initialize()
     {
         epsilonDSum      = 0;
         epsilonHSum      = 0;
@@ -465,8 +467,6 @@ public:
         curEpsilonD      = 0;
         curEpsilonH      = 0;
 
-        expansionPolicy = policy;
-        lookahead       = la;
         correctedD.clear();
         correctedDerr.clear();
         correctedH.clear();
@@ -530,7 +530,4 @@ public:
     double curEpsilonH;
     double curEpsilonD;
     double expansionCounter;
-
-    string expansionPolicy;
-    int    lookahead;
 };

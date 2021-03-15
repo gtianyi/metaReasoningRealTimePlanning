@@ -40,7 +40,6 @@ public:
         Cost                 epsD;
         shared_ptr<Node>     parent;
         State                stateRep;
-        size_t               owningTLA;
         bool                 open;
         int                  delayCntr;
         DiscreteDistribution distribution;
@@ -60,7 +59,6 @@ public:
 
         State            getState() const { return stateRep; }
         shared_ptr<Node> getParent() const { return parent; }
-        size_t           getOwningTLA() const { return owningTLA; }
 
         void setHValue(Cost val) { h = val; }
         void setGValue(Cost val) { g = val; }
@@ -69,7 +67,6 @@ public:
         void setEpsilonH(Cost val) { epsH = val; }
         void setEpsilonD(Cost val) { epsD = val; }
         void setState(State s) { stateRep = s; }
-        void setOwningTLA(size_t tla) { owningTLA = tla; }
         void setParent(shared_ptr<Node> p) { parent = p; }
 
         bool onOpen() { return open; }
@@ -81,11 +78,8 @@ public:
         void incDelayCntr() { delayCntr++; }
         int  getDelayCntr() { return delayCntr; }
 
-        void markClearTwoDistribution() { twoDistribtuionCleared = true; }
-        void markUnClearTwoDistribution() { twoDistribtuionCleared = false; }
-
         Node(Cost g_, Cost h_, Cost d_, Cost derr_, Cost epsH_, Cost epsD_,
-             State state_, shared_ptr<Node> parent_, size_t tla_)
+             State state_, shared_ptr<Node> parent_)
             : g(g_)
             , h(h_)
             , d(d_)
@@ -94,7 +88,6 @@ public:
             , epsD(epsD_)
             , parent(parent_)
             , stateRep(state_)
-            , owningTLA(tla_)
         {
             open      = true;
             delayCntr = 0;
@@ -205,156 +198,24 @@ public:
         }
     };
 
-    struct TopLevelAction
-    {
-    public:
-        PriorityQueue<shared_ptr<Node>> open_TLA;
-        Cost                            expectedMinimumPathCost;
-        shared_ptr<Node>                topLevelNode;
-        // vector<shared_ptr<Node>> kBestNodes;
-        Cost                 h_TLA;
-        DiscreteDistribution belief;
-
-        TopLevelAction() { open_TLA.swapComparator(Node::compareNodesFHat); }
-        // TopLevelAction() { open_TLA.swapComparator(Node::compareNodesLC); }
-
-        TopLevelAction(const TopLevelAction& tla) { copy(tla); }
-
-        virtual ~TopLevelAction() = default;
-
-        TopLevelAction& operator=(const TopLevelAction& rhs)
-        {
-            if (&rhs == this)
-                return *this;
-            copy(rhs);
-            return *this;
-        }
-
-        Cost getF_TLA() const
-        {
-            return this->topLevelNode->getGValue() + h_TLA;
-        }
-
-        // shared_ptr<DiscreteDistribution> getBelief() { return belief; };
-        // DiscreteDistribution getBelief() { return belief; };
-        // double getBeliefExpectedCost() { return belief.expectedCost(); };
-
-        // void squishBelief(double factor) { belief->squish(factor); };
-        void squishBelief(double factor) { belief.squish(factor); };
-
-        // void setBelief(shared_ptr<DiscreteDistribution> _belief) {
-        void setBelief(shared_ptr<Node> best)
-        {
-            belief = DiscreteDistribution(
-              100, best->getFValue(), best->getFHatValue(), best->getDValue(),
-              best->getFHatValue() - best->getFValue());
-        };
-
-    private:
-        // shared_ptr<DiscreteDistribution> belief;
-
-        void copy(const TopLevelAction& tla)
-        {
-            open_TLA                = tla.open_TLA;
-            expectedMinimumPathCost = tla.expectedMinimumPathCost;
-            topLevelNode            = tla.topLevelNode;
-            belief                  = tla.belief;
-            // kBestNodes = tla.kBestNodes;
-            h_TLA = tla.h_TLA;
-        }
-    };
-
     RealTimeSearch(Domain& domain_, string expansionModule_,
                    string learningModule_, string decisionModule_,
                    int lookahead_, double, string beliefType_ = "normal")
         : domain(domain_)
         , lookahead(lookahead_)
         , beliefType(beliefType_)
-        , expansionPolicy(expansionModule_)
-        , learningPolicy(learningModule_)
         , decisionPolicy(decisionModule_)
 
     {
-        if (expansionModule_ == "a-star") {
-            expansionAlgo = make_shared<AStar<Domain, Node, TopLevelAction>>(
-              domain, lookahead, "f");
-        } else if (expansionModule_ == "f-hat") {
-            expansionAlgo = make_shared<AStar<Domain, Node, TopLevelAction>>(
-              domain, lookahead, "fhat");
-            /*} else if (expansionModule == "dfs") {*/
-            // expansionAlgo =
-            // make_shared<DepthFirst<Domain, Node, TopLevelAction>>(domain,
-            // lookahead);
-            //} else if (expansionModule == "bfs") {
-            // expansionAlgo =
-            // make_shared<BreadthFirst<Domain, Node, TopLevelAction>>(
-            // domain, lookahead);
-            //} else if (expansionModule == "risk") {
-            // expansionAlgo = make_shared<Risk<Domain, Node, TopLevelAction>>(
-            // domain, lookahead, 1);
-            //} else if (expansionModule == "riskDD") {
-            // expansionAlgo = make_shared<RiskDD<Domain, Node,
-            // TopLevelAction>>( domain, lookahead, 1);
-            //} else if (expansionModule == "riskDDSquish") {
-            // expansionAlgo =
-            // make_shared<RiskDDSquish<Domain, Node, TopLevelAction>>(
-            // domain, lookahead, 1);
-            //} else if (expansionModule == "ie") {
-            //// expansionAlgo = make_shared<RiskIE<Domain, Node,
-            //// TopLevelAction>>( domain, lookahead);
-            // expansionAlgo = make_shared<AStar<Domain, Node, TopLevelAction>>(
-            /*domain, lookahead, "lowerconfidence");*/
-        } else {
-            expansionAlgo = make_shared<AStar<Domain, Node, TopLevelAction>>(
-              domain, lookahead, "f");
-            DEBUG_MSG("not specified expansion module type, use Astart");
-        }
+        metaReasonExpansionAlgo =
+          make_shared<MetaReasonAStar<Domain, Node>>(domain, lookahead, "f");
 
-        // if (learningModule == "none") {
-        // learningAlgo =
-        // make_shared<Ignorance<Domain, Node, TopLevelAction>>();
-        //} else
-        if (learningModule_ == "learn") {
-            learningAlgo =
-              make_shared<Dijkstra<Domain, Node, TopLevelAction>>(domain);
-            /*} else if (learningModule == "learnDD") {*/
-            // learningAlgo =
-            // make_shared<DijkstraDistribution<Domain, Node, TopLevelAction>>(
-            /*domain);*/
-        } else {
-            learningAlgo =
-              make_shared<Dijkstra<Domain, Node, TopLevelAction>>(domain);
-        }
+        metaReasonLearningAlgo =
+          make_shared<MetaReasonDijkstra<Domain, Node>>(domain);
 
-        if (decisionModule_ == "minimin") {
-            decisionAlgo =
-              make_shared<ScalarBackup<Domain, Node, TopLevelAction>>(
-                "minimin");
-        } else if (decisionModule_ == "bellman") {
-            decisionAlgo =
-              make_shared<ScalarBackup<Domain, Node, TopLevelAction>>(
-                "bellman");
-            /*} else if (decisionModule == "nancy") {*/
-            // decisionAlgo =
-            //// make_shared<NancyBackup<Domain, Node, TopLevelAction>>(
-            //// domain, lookahead);
-            // make_shared<KBestBackup<Domain, Node, TopLevelAction>>(domain, 1,
-            // lookahead);
-            //} else if (decisionModule == "nancy-persist") {
-            // decisionAlgo =
-            //// make_shared<NancyBackup<Domain, Node, TopLevelAction>>(
-            //// domain, lookahead);
-            // make_shared<KBestBackup<Domain, Node, TopLevelAction>>(domain, 1,
-            // lookahead);
-            //} else if (decisionModule == "nancyDD") {
-            // decisionAlgo =
-            // make_shared<NancyDDDecision<Domain, Node, TopLevelAction>>(
-            /*domain, lookahead);*/
-        } else {
-            decisionAlgo =
-              make_shared<ScalarBackup<Domain, Node, TopLevelAction>>(
-                "minimin");
-        }
+        metaReasonDecisionAlgo =
+              make_shared<ScalarBackup<Domain, Node>>(decisionModule_);
+        
     }
 
     ~RealTimeSearch() { clean(); }
@@ -362,8 +223,6 @@ public:
     // p: iterationlimit
     ResultContainer search(int)
     {
-        domain.initialize(expansionPolicy, lookahead);
-
         ResultContainer res;
 
         shared_ptr<Node> start;
@@ -471,8 +330,7 @@ private:
     static bool duplicateDetection(
       shared_ptr<Node>                              node,
       unordered_map<State, shared_ptr<Node>, Hash>& closed,
-      PriorityQueue<shared_ptr<Node>>&              open,
-      vector<shared_ptr<TopLevelAction>>&           tlaList)
+      PriorityQueue<shared_ptr<Node>>&              open)
     {
         // Check if this state exists
         typename unordered_map<State, shared_ptr<Node>, Hash>::iterator it =
@@ -484,8 +342,6 @@ private:
             if (it->second->onOpen()) {
                 // This node is on OPEN, keep the better g-value
                 if (node->getGValue() < it->second->getGValue()) {
-                    tlaList[it->second->getOwningTLA()]->open_TLA.remove(
-                      it->second);
                     it->second->setGValue(node->getGValue());
                     it->second->setParent(node->getParent());
                     it->second->setHValue(node->getHValue());
@@ -494,8 +350,7 @@ private:
                     it->second->setEpsilonH(node->getEpsilonH());
                     it->second->setEpsilonD(node->getEpsilonD());
                     it->second->setState(node->getState());
-                    it->second->setOwningTLA(node->getOwningTLA());
-                    tlaList[node->getOwningTLA()]->open_TLA.push(it->second);
+                    open.update(it->second);
                 }
             } else {
                 // This node is on CLOSED, compare the f-values. If this new
@@ -510,8 +365,6 @@ private:
                     it->second->setEpsilonH(node->getEpsilonH());
                     it->second->setEpsilonD(node->getEpsilonD());
                     it->second->setState(node->getState());
-                    it->second->setOwningTLA(node->getOwningTLA());
-                    tlaList[node->getOwningTLA()]->open_TLA.push(it->second);
                     it->second->reOpen();
                     open.push(it->second);
                 }
@@ -521,119 +374,6 @@ private:
         }
 
         return false;
-    }
-
-    static bool duplicateDetectionDD(
-      shared_ptr<Node>                              node,
-      unordered_map<State, shared_ptr<Node>, Hash>& closed,
-      PriorityQueue<shared_ptr<Node>>&              open,
-      vector<shared_ptr<TopLevelAction>>&           tlaList)
-    {
-        // Check if this state exists
-        typename unordered_map<State, shared_ptr<Node>, Hash>::iterator it =
-          closed.find(node->getState());
-
-        if (it != closed.end()) {
-            // This state has been generated before, check if its node is on
-            // OPEN
-            if (it->second->onOpen()) {
-                // This node is on OPEN, keep the better g-value
-                //
-                // we only update the g value, and the parent,
-                // since everything else should be identical with the same state
-                // then change the owing tla
-                if (node->getGValue() < it->second->getGValue()) {
-                    tlaList[it->second->getOwningTLA()]->open_TLA.remove(
-                      it->second);
-                    it->second->setGValue(node->getGValue());
-                    it->second->setParent(node->getParent());
-                    it->second->setOwningTLA(node->getOwningTLA());
-                    tlaList[node->getOwningTLA()]->open_TLA.push(it->second);
-                }
-            } else {
-                // This node is on CLOSED, compare the f-values. If this new
-                // f-value is better, reset g, h, and d.
-                // Then reopen the node.
-                //
-                // here for dd we compare g, because for the same state,
-                // their h value are the same.
-                if (node->getGValue() < it->second->getGValue()) {
-                    it->second->setGValue(node->getGValue());
-                    it->second->setParent(node->getParent());
-                    it->second->setOwningTLA(node->getOwningTLA());
-                    tlaList[node->getOwningTLA()]->open_TLA.push(it->second);
-                    it->second->reOpen();
-                    open.push(it->second);
-                }
-            }
-
-            return true;
-        }
-
-        return false;
-    }
-
-    // we need a new generate funciton for nancydd and simplified node
-    // constructor
-    void generateTopLevelActions(shared_ptr<Node> start, ResultContainer& res)
-    {
-        // The first node to be expanded in any problem is the start node
-        // Doing so yields the top level actions
-        start->close();
-        closed[start->getState()] = start;
-        res.nodesExpanded++;
-
-        vector<State> children = domain.successors(start->getState());
-        res.nodesGenerated += children.size();
-
-        if (children.size() == 0) {
-            cerr << "dead end, no TLA kids!\n";
-            exit(1);
-        }
-
-        State bestChild;
-        Cost  bestF = numeric_limits<double>::infinity();
-
-        for (State child : children) {
-            // DEBUG_MSG("TLA kid: " << child);
-            shared_ptr<Node> childNode = make_shared<Node>(
-              start->getGValue() + domain.getEdgeCost(child),
-              domain.heuristic(child), domain.distance(child),
-              domain.distanceErr(child), domain.epsilonHGlobal(),
-              domain.epsilonDGlobal(), child, start, tlas.size());
-
-            if (childNode->getFValue() < bestF) {
-                bestF     = childNode->getFValue();
-                bestChild = child;
-            }
-
-            // No top level action will ever be a duplicate, so no need to
-            // check.
-            // Make a new top level action and push this node onto its open
-            shared_ptr<TopLevelAction> tla = make_shared<TopLevelAction>();
-            tla->topLevelNode              = childNode;
-
-            tla->expectedMinimumPathCost = childNode->getFHatValue();
-
-            // Push this node onto open and closed
-            closed[child] = childNode;
-            open.push(childNode);
-            tla->open_TLA.push(childNode);
-
-            // Add this top level action to the list
-            tlas.push_back(tla);
-        }
-
-        // Learn one-step error
-        if (!children.empty()) {
-            Cost epsD = (1 + domain.distance(bestChild)) - start->getDValue();
-            Cost epsH =
-              (domain.getEdgeCost(bestChild) + domain.heuristic(bestChild)) -
-              start->getHValue();
-
-            domain.pushEpsilonHGlobal(epsH);
-            domain.pushEpsilonDGlobal(epsD);
-        }
     }
 
     void restartLists(shared_ptr<Node> start)
@@ -672,17 +412,14 @@ private:
     }
 
 protected:
-    Domain&                                                      domain;
-    shared_ptr<ExpansionAlgorithm<Domain, Node, TopLevelAction>> expansionAlgo;
-    shared_ptr<LearningAlgorithm<Domain, Node, TopLevelAction>>  learningAlgo;
-    shared_ptr<DecisionAlgorithm<Domain, Node, TopLevelAction>>  decisionAlgo;
-    PriorityQueue<shared_ptr<Node>>                              open;
-    unordered_map<State, shared_ptr<Node>, Hash>                 closed;
-    vector<shared_ptr<TopLevelAction>>                           tlas;
+    Domain&                                                 domain;
+    shared_ptr<MetaReasoingDecisionAlgorithm<Domain, Node>> decisionAlgo;
+    PriorityQueue<shared_ptr<Node>>                         open;
+    unordered_map<State, shared_ptr<Node>, Hash>            closed;
 
     int    lookahead;
     string beliefType;
-    string expansionPolicy;
-    string learningPolicy;
+    // string expansionPolicy;
+    // string learningPolicy;
     string decisionPolicy;
 };

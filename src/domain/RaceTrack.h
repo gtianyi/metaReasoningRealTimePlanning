@@ -125,6 +125,7 @@ public:
         computeDijkstraMap();
         computeEuclideanMap();
         heuristicVariant = 0; // Default
+        initialize();
     }
 
     void setVariant(int variant) { heuristicVariant = variant; }
@@ -387,7 +388,7 @@ public:
 
     string getDomainName() { return "RaceTrack"; }
 
-    void initialize(string policy, int la)
+    void initialize()
     {
         epsilonDSum      = 0;
         epsilonHSum      = 0;
@@ -395,8 +396,6 @@ public:
         curEpsilonD      = 0;
         curEpsilonH      = 0;
 
-        expansionPolicy = policy;
-        lookahead       = la;
         correctedD.clear();
         correctedH.clear();
         correctedDerr.clear();
@@ -681,7 +680,4 @@ private:
     double curEpsilonD;
     double curEpsilonHVar;
     double expansionCounter;
-
-    string expansionPolicy;
-    int    lookahead;
 };

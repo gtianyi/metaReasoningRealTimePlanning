@@ -107,6 +107,7 @@ public:
         parseInput(input);
         initilaizeActions();
         // costVariant = 0; // default
+        initialize();
     }
 
     // void setVariant(int variant) { costVariant = variant; }
@@ -294,7 +295,7 @@ public:
 
     string getDomainName() { return "GridPathfinding"; }
 
-    void initialize(string policy, int la)
+    void initialize()
     {
         epsilonDSum      = 0;
         epsilonHSum      = 0;
@@ -302,8 +303,6 @@ public:
         curEpsilonD      = 0;
         curEpsilonH      = 0;
 
-        expansionPolicy = policy;
-        lookahead       = la;
         correctedD.clear();
         correctedH.clear();
         correctedDerr.clear();
@@ -413,8 +412,6 @@ private:
     // double curEpsilonHVar;
     double expansionCounter;
 
-    string expansionPolicy;
-    int    lookahead;
     size_t goalX;
     size_t goalY;
 };

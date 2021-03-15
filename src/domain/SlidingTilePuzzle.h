@@ -231,6 +231,7 @@ public:
         }
 
         startState = State(startBoard, 's');
+        initialize();
     }
 
     virtual ~SlidingTilePuzzle() {}
@@ -514,7 +515,7 @@ public:
 
     string getDomainName() { return "SlidingTilePuzzle"; }
 
-    void initialize(string policy, int la)
+    void initialize()
     {
         epsilonDSum      = 0;
         epsilonHSum      = 0;
@@ -522,8 +523,6 @@ public:
         curEpsilonD      = 0;
         curEpsilonH      = 0;
 
-        expansionPolicy = policy;
-        lookahead       = la;
         correctedD.clear();
         correctedH.clear();
         correctedDerr.clear();
@@ -593,9 +592,6 @@ public:
     double curEpsilonH;
     double curEpsilonD;
     double expansionCounter;
-
-    string expansionPolicy;
-    int    lookahead;
 
     static vector<int> table;
 };
