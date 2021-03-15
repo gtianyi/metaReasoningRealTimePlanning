@@ -1,5 +1,6 @@
 #pragma once
-#include "decisionAlgorithms/DecisionAlgorithm.h"
+//#include "decisionAlgorithms/DecisionAlgorithm.h"
+#include "decisionAlgorithms/MetaReasonScalarBackup.h"
 #include "expansionAlgorithms/MetaReasonAStar.h"
 #include "learningAlgorithms/MetaReasonDijkstra.h"
 #include "utility/DiscreteDistribution.h"
@@ -205,7 +206,7 @@ public:
           make_shared<MetaReasonDijkstra<Domain, Node>>(domain);
 
         metaReasonDecisionAlgo =
-          make_shared<ScalarBackup<Domain, Node>>(decisionModule_);
+          make_shared<MetaReasonScalarBackup<Domain, Node>>(decisionModule_);
     }
 
     ~RealTimeSearch() { clean(); }
@@ -215,9 +216,7 @@ public:
     {
         ResultContainer res;
 
-        shared_ptr<Node> start;
-
-        start = make_shared<Node>(
+        shared_ptr<Node> initNode = make_shared<Node>(
           0, domain.heuristic(domain.getStartState()),
           domain.distance(domain.getStartState()),
           domain.distanceErr(domain.getStartState()), domain.epsilonHGlobal(),
@@ -225,11 +224,16 @@ public:
 
         int count = 0;
 
-        queue<Node*> actionQueue;
+        queue<shared_ptr<Node>> actionQueue(initNode);
 
         // while (count <= iterationlimit) {
         while (1) {
             clock_t startTime = clock();
+
+            auto start = actionQueue.front();
+            actionQueue.pop();
+            res.path.push(start->getState().toString());
+            res.solutionCost += start->getGValue();
 
             // mark this node as the start of the current search (to
             // prevent state pruning based on label)
@@ -254,7 +258,7 @@ public:
             domain.updateEpsilons();
             // generateTopLevelActions(start, res);
             metaReasonExpansionAlgo->expand(open, closed, duplicateDetection,
-                                               res);
+                                            res);
 
             // Check if this is a dead end
             if (open.empty()) {
@@ -264,7 +268,7 @@ public:
             // Decision-making Phase
             // check how many of the prefix should be commit
             auto commitQueue =
-              metaReasonDecisionAlgo->backup(open, tlas, start, closed);
+              metaReasonDecisionAlgo->backup(open, start, closed);
 
             // four metaReasoningDecisionAlgo
             // 1. allways commit one, just like old nancy code
@@ -278,10 +282,14 @@ public:
             // this loop should not happen for approach 1-3
             while (commitQueue.empty() && !actionQueue.empty()) {
                 metaReasonExpansionAlgo->expand(open, closed,
-                                                   duplicateDetection, res);
+                                                duplicateDetection, res);
                 commitQueue = metaReasonDecisionAlgo->backup(
                   open, start, closed, "not force Commit");
+
+                auto n = actionQueue.front();
                 actionQueue.pop();
+                res.path.push(n->getState().toString());
+                res.solutionCost += n->getGValue();
             }
 
             if (commitQueue.empty()) {
@@ -290,12 +298,9 @@ public:
                   open, start, closed, "force Commit");
             }
 
-            start = commitQueue.end();
-            actionQueue.appending(commitQueue);
-
-            // Add this step to the path taken so far
-            res.path.push(allCommitQueueNodes->getState().toString());
-            res.solutionCost += start->getGValue();
+            for (auto n : commitQueue) {
+                actionQueue.push(n);
+            }
 
             DEBUG_MSG("iteration: " << count);
 
@@ -389,12 +394,12 @@ private:
     }
 
 protected:
-    Domain&                                                 domain;
-    shared_ptr<MetaReasoingDecisionAlgorithm<Domain, Node>> metaReasonDecisionAlgo;
-    shared_ptr<MetaReasonAStar<Domain, Node>> metaReasonExpansionAlgo;
-    shared_ptr<MetaReasonDijkstra<Domain, Node>> metaReasonLearningAlgo;
-    PriorityQueue<shared_ptr<Node>>                         open;
-    unordered_map<State, shared_ptr<Node>, Hash>            closed;
+    Domain&                                          domain;
+    shared_ptr<MetaReasonScalarBackup<Domain, Node>> metaReasonDecisionAlgo;
+    shared_ptr<MetaReasonAStar<Domain, Node>>        metaReasonExpansionAlgo;
+    shared_ptr<MetaReasonDijkstra<Domain, Node>>     metaReasonLearningAlgo;
+    PriorityQueue<shared_ptr<Node>>                  open;
+    unordered_map<State, shared_ptr<Node>, Hash>     closed;
 
-    int    lookahead;
+    int lookahead;
 };
