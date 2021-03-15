@@ -92,4 +92,12 @@ if(ENABLE_DOXYGEN)
     enable_doxygen()
 endif()
 
+if(CMAKE_BUILD_TYPE MATCHES Release)
+    message("release mode")
+    add_compile_options(-O3)
+else()
+    message("debug mode")
+    add_compile_options(-D DEBUG)
+endif()
+
 add_subdirectory(src)

@@ -1,7 +1,6 @@
 #pragma once
 #include "../utility/PriorityQueue.h"
 #include "../utility/ResultContainer.h"
-#include "ExpansionAlgorithm.h"
 #include <functional>
 #include <memory>
 #include <unordered_map>
@@ -65,7 +64,7 @@ public:
                   cur->getGValue() + domain.getEdgeCost(child),
                   domain.heuristic(child), domain.distance(child),
                   domain.distanceErr(child), domain.epsilonHGlobal(),
-                  domain.epsilonDGlobal(), child, cur, cur->getOwningTLA());
+                  domain.epsilonDGlobal(), child, cur);
 
                 bool dup = duplicateDetection(childNode, closed, open);
 
@@ -101,8 +100,6 @@ private:
             open.swapComparator(Node::compareNodesF);
         else if (sortingFunction == "fhat")
             open.swapComparator(Node::compareNodesFHat);
-        else if (sortingFunction == "lowerconfidence")
-            open.swapComparator(Node::compareNodesLC);
     }
 
 protected:

@@ -1,6 +1,5 @@
 #pragma once
 #include "../utility/PriorityQueue.h"
-#include "DecisionAlgorithm.h"
 #include <functional>
 #include <memory>
 
@@ -21,7 +20,7 @@ public:
 
     vector<shared_ptr<Node>> backup(
       PriorityQueue<shared_ptr<Node>>& open, shared_ptr<Node> start,
-      unordered_map<State, shared_ptr<Node>, Hash>&)
+      unordered_map<State, shared_ptr<Node>, Hash>&, const string&)
     {
         shared_ptr<Node> goalPrime = open.top();
 
@@ -29,7 +28,7 @@ public:
         while (goalPrime->getParent() != start)
             goalPrime = goalPrime->getParent();
 
-        return vector<shared_ptr<Node>>(goalPrime);
+        return vector<shared_ptr<Node>>{goalPrime};
     }
 
 private:
