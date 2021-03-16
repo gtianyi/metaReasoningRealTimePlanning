@@ -8,6 +8,7 @@ struct ResultContainer {
     queue<string> path;
     bool solutionFound;
     double solutionCost;
+    double solutionLength;
     size_t nodesGenerated;
     size_t nodesExpanded;
     vector<double> lookaheadCpuTime;
@@ -17,6 +18,7 @@ struct ResultContainer {
     ResultContainer() {
         solutionFound = false;
         solutionCost = -1;
+        solutionLength = -1;
         nodesGenerated = 0;
         nodesExpanded = 0;
         epsilonHGlobal = 0;
@@ -26,6 +28,7 @@ struct ResultContainer {
     ResultContainer(const ResultContainer& res) {
         solutionFound = res.solutionFound;
         solutionCost = res.solutionCost;
+        solutionLength = res.solutionLength;
         nodesGenerated = res.nodesGenerated;
         nodesExpanded = res.nodesExpanded;
         path = res.path;
@@ -40,6 +43,7 @@ struct ResultContainer {
         else {
             solutionFound = rhs.solutionFound;
             solutionCost = rhs.solutionCost;
+            solutionLength = rhs.solutionLength;
             nodesGenerated = rhs.nodesGenerated;
             nodesExpanded = rhs.nodesExpanded;
             path = rhs.path;

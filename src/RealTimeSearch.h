@@ -286,7 +286,9 @@ public:
                 auto n = actionQueue.front();
                 actionQueue.pop();
                 res.path.push(n->getState().toString());
-                res.solutionCost += n->getGValue();
+                // TODO cost can not be computed here
+                // res.solutionCost += n->getGValue();
+                res.solutionLength += 1;
             }
 
             // deadend

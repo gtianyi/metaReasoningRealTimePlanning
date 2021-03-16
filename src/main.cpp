@@ -21,15 +21,16 @@ nlohmann::json parseResult(const ResultContainer&      res,
 
     nlohmann::json record;
 
-    record["node expanded"]  = res.nodesExpanded;
-    record["node generated"] = res.nodesGenerated;
-    record["solution found"] = res.solutionFound;
-    record["solution cost"]  = res.solutionCost;
-    record["instance"]       = args["instance"].as<std::string>();
-    record["algorithm"]      = args["alg"].as<std::string>();
-    record["lookahead"]      = args["lookahead"].as<int>();
-    record["domain"]         = args["domain"].as<std::string>();
-    record["subdomain"]      = args["subdomain"].as<std::string>();
+    record["node expanded"]   = res.nodesExpanded;
+    record["node generated"]  = res.nodesGenerated;
+    record["solution found"]  = res.solutionFound;
+    record["solution cost"]   = res.solutionCost;
+    record["solution length"] = res.solutionLength;
+    record["instance"]        = args["instance"].as<std::string>();
+    record["algorithm"]       = args["alg"].as<std::string>();
+    record["lookahead"]       = args["lookahead"].as<int>();
+    record["domain"]          = args["domain"].as<std::string>();
+    record["subdomain"]       = args["subdomain"].as<std::string>();
 
     return record;
 }
