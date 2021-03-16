@@ -9,20 +9,21 @@ using namespace std;
 
 template<class Domain, class Node>
 // class ScalarBackup
-class MetaReasonScalarBackup : public DecisionAlgorithm<Domain, Node>
+class MetaReasonNancyBackup : public DecisionAlgorithm<Domain, Node>
 {
     typedef typename Domain::State     State;
     typedef typename Domain::Cost      Cost;
     typedef typename Domain::HashState Hash;
 
 public:
-    MetaReasonScalarBackup(string decisionModule_)
+    MetaReasonNancyBackup(string decisionModule_)
         : decisionModule(decisionModule_)
     {}
 
     stack<shared_ptr<Node>> backup(
       PriorityQueue<shared_ptr<Node>>& open, shared_ptr<Node> start,
-      unordered_map<State, shared_ptr<Node>, Hash>&, const string&)
+      unordered_map<State, shared_ptr<Node>, Hash>& closed,
+      const string&                                 forceCommitStr)
     {
         stack<shared_ptr<Node>> commitedNodes;
         shared_ptr<Node>        goalPrime = open.top();

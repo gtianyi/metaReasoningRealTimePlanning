@@ -42,6 +42,8 @@ public:
         DiscreteDistribution distribution;
         bool                 twoDistribtuionCleared;
 
+        shared_ptr<Node>     nancyFrontier;
+
     public:
         Cost getGValue() const { return g; }
         Cost getHValue() const { return h; }
@@ -200,14 +202,21 @@ public:
         , lookahead(lookahead_)
         , decisionModule(decisionModule_)
     {
+        if (decisionModule == "one" || decisionModule == "alltheway") {
+            metaReasonDecisionAlgo =
+              make_shared<MetaReasonScalarBackup<Domain, Node>>(
+                decisionModule_);
+        } else if (decisionModule == "dtrts") {
+        } else {
+            cerr << "unknown decision module: " << decisionModule << "\n";
+            exit(1);
+        }
+
         metaReasonExpansionAlgo =
           make_shared<MetaReasonAStar<Domain, Node>>(domain, lookahead, "f");
 
         metaReasonLearningAlgo =
           make_shared<MetaReasonDijkstra<Domain, Node>>(domain);
-
-        metaReasonDecisionAlgo =
-          make_shared<MetaReasonScalarBackup<Domain, Node>>(decisionModule_);
     }
 
     ~RealTimeSearch() { clean(); }
@@ -424,12 +433,12 @@ private:
     }
 
 protected:
-    Domain&                                          domain;
-    shared_ptr<MetaReasonScalarBackup<Domain, Node>> metaReasonDecisionAlgo;
-    shared_ptr<MetaReasonAStar<Domain, Node>>        metaReasonExpansionAlgo;
-    shared_ptr<MetaReasonDijkstra<Domain, Node>>     metaReasonLearningAlgo;
-    PriorityQueue<shared_ptr<Node>>                  open;
-    unordered_map<State, shared_ptr<Node>, Hash>     closed;
+    Domain&                                      domain;
+    shared_ptr<DecisionAlgorithm<Domain, Node>>  metaReasonDecisionAlgo;
+    shared_ptr<MetaReasonAStar<Domain, Node>>    metaReasonExpansionAlgo;
+    shared_ptr<MetaReasonDijkstra<Domain, Node>> metaReasonLearningAlgo;
+    PriorityQueue<shared_ptr<Node>>              open;
+    unordered_map<State, shared_ptr<Node>, Hash> closed;
 
     size_t lookahead;
     string decisionModule;
