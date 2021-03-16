@@ -195,9 +195,10 @@ public:
         }
     };
 
-    RealTimeSearch(Domain& domain_, string decisionModule_, int lookahead_)
+    RealTimeSearch(Domain& domain_, string decisionModule_, size_t lookahead_)
         : domain(domain_)
         , lookahead(lookahead_)
+        , decisionModule(decisionModule_)
     {
         metaReasonExpansionAlgo =
           make_shared<MetaReasonAStar<Domain, Node>>(domain, lookahead, "f");
@@ -227,25 +228,38 @@ public:
         queue<shared_ptr<Node>> actionQueue;
         actionQueue.push(initNode);
 
+        // if set a cutoff iteration
         // while (count <= iterationlimit) {
         while (1) {
-            clock_t startTime = clock();
-
             auto start = actionQueue.front();
 
-            // mark this node as the start of the current search (to
-            // prevent state pruning based on label)
-            start->markStart();
+            if (decisionModule == "alltheway") {
+                while (actionQueue.size() > 1) {
 
-            // DEBUG_MSG("start: " << start->getState());
+                    start = actionQueue.front();
+                    actionQueue.pop();
+                    res.path.push(start->getState().toString());
+                    // TODO cost can not be computed here
+                    // res.solutionCost += n->getGValue();
+                    res.solutionLength += 1;
 
-            count++;
+                    // lsslrta* try to optimize cpu time,
+                    // so even if more than one action are commited, it
+                    // will not use the time to thinking,
+                    // so we have to directly advance the "time"
+                    res.GATnodesExpanded += lookahead;
+
+                    if (domain.isGoal(start->getState())) {
+                        return res;
+                    }
+                }
+
+                start = actionQueue.front();
+            }
 
             // Check if a goal has been reached
             if (domain.isGoal(start->getState())) {
-                res.solutionFound  = true;
-                res.epsilonHGlobal = domain.epsilonHGlobal();
-                res.epsilonDGlobal = domain.epsilonDGlobal();
+                res.solutionFound = true;
                 res.path.push(start->getState().toString());
                 res.solutionLength += 1;
 
@@ -258,7 +272,7 @@ public:
 
             // Expansion and Decision-making Phase
             // check how many of the prefix should be commit
-            vector<shared_ptr<Node>> commitQueue;
+            stack<shared_ptr<Node>> commitQueue;
 
             // four metaReasoningDecisionAlgo
             // 1. allways commit one, just like old nancy code
@@ -308,17 +322,17 @@ public:
 
             assert(commitQueue.size() > 0);
 
-            for (auto n : commitQueue) {
+            while (!commitQueue.empty()) {
+                auto n = commitQueue.top();
+                commitQueue.pop();
                 actionQueue.push(n);
             }
-
-            DEBUG_MSG("iteration: " << count);
 
             // LearninH Phase
             metaReasonLearningAlgo->learn(open, closed);
 
-            res.lookaheadCpuTime.push_back(double(clock() - startTime) /
-                                           CLOCKS_PER_SEC);
+            ++count;
+            DEBUG_MSG("iteration: " << count);
         }
 
         return res;
@@ -376,6 +390,10 @@ private:
 
     void restartLists(shared_ptr<Node> start)
     {
+        // mark this node as the start of the current search (to
+        // prevent state pruning based on label)
+        start->markStart();
+
         // Empty OPEN and CLOSED
         open.clear();
 
@@ -413,5 +431,6 @@ protected:
     PriorityQueue<shared_ptr<Node>>                  open;
     unordered_map<State, shared_ptr<Node>, Hash>     closed;
 
-    int lookahead;
+    size_t lookahead;
+    string decisionModule;
 };

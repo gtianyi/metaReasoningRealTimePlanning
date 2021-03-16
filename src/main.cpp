@@ -21,23 +21,24 @@ nlohmann::json parseResult(const ResultContainer&      res,
 
     nlohmann::json record;
 
-    record["node expanded"]   = res.nodesExpanded;
-    record["node generated"]  = res.nodesGenerated;
-    record["solution found"]  = res.solutionFound;
-    record["solution cost"]   = res.solutionCost;
-    record["solution length"] = res.solutionLength;
-    record["instance"]        = args["instance"].as<std::string>();
-    record["algorithm"]       = args["alg"].as<std::string>();
-    record["lookahead"]       = args["lookahead"].as<int>();
-    record["domain"]          = args["domain"].as<std::string>();
-    record["subdomain"]       = args["subdomain"].as<std::string>();
+    record["node expanded"]     = res.nodesExpanded;
+    record["GAT node expanded"] = res.GATnodesExpanded;
+    record["node generated"]    = res.nodesGenerated;
+    record["solution found"]    = res.solutionFound;
+    record["solution cost"]     = res.solutionCost;
+    record["solution length"]   = res.solutionLength;
+    record["instance"]          = args["instance"].as<std::string>();
+    record["algorithm"]         = args["alg"].as<std::string>();
+    record["lookahead"]         = args["lookahead"].as<int>();
+    record["domain"]            = args["domain"].as<std::string>();
+    record["subdomain"]         = args["subdomain"].as<std::string>();
 
     return record;
 }
 
 template<class Domain>
 ResultContainer startAlg(shared_ptr<Domain> domain_ptr, string decisionModule,
-                         double lookahead)
+                         size_t lookahead)
 {
     shared_ptr<RealTimeSearch<Domain>> searchAlg =
       make_shared<RealTimeSearch<Domain>>(*domain_ptr, decisionModule,
@@ -88,7 +89,7 @@ int main(int argc, char** argv)
     auto domain         = args["domain"].as<std::string>();
     auto subDomain      = args["subdomain"].as<std::string>();
     auto alg            = args["alg"].as<std::string>();
-    auto lookaheadDepth = args["lookahead"].as<int>();
+    auto lookaheadDepth = static_cast<size_t>(args["lookahead"].as<int>());
 
     ResultContainer res;
 

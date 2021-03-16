@@ -2,6 +2,7 @@
 #include "../utility/PriorityQueue.h"
 #include <functional>
 #include <memory>
+#include <stack>
 
 using namespace std;
 
@@ -18,20 +19,27 @@ public:
         : decisionModule(decisionModule_)
     {}
 
-    vector<shared_ptr<Node>> backup(
+    stack<shared_ptr<Node>> backup(
       PriorityQueue<shared_ptr<Node>>& open, shared_ptr<Node> start,
       unordered_map<State, shared_ptr<Node>, Hash>&, const string&)
     {
-        shared_ptr<Node> goalPrime = open.top();
+        stack<shared_ptr<Node>> commitedNodes;
+        shared_ptr<Node>         goalPrime = open.top();
 
         // Only move one step towards best on open
-        while (goalPrime->getParent() != start)
-            goalPrime = goalPrime->getParent();
+        while (goalPrime->getParent() != start) {
+            if (decisionModule == "alltheway") {
+                commitedNodes.push(goalPrime);
+            }
 
-        return vector<shared_ptr<Node>>{goalPrime};
+            goalPrime = goalPrime->getParent();
+        }
+
+        commitedNodes.push(goalPrime);
+
+        return commitedNodes;
     }
 
-private:
 protected:
     string decisionModule;
 };

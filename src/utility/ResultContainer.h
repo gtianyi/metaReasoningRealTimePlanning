@@ -10,6 +10,7 @@ struct ResultContainer {
     double solutionCost;
     double solutionLength;
     size_t nodesGenerated;
+    size_t GATnodesExpanded;
     size_t nodesExpanded;
     vector<double> lookaheadCpuTime;
     double epsilonHGlobal;
@@ -21,6 +22,7 @@ struct ResultContainer {
         solutionLength = -1;
         nodesGenerated = 0;
         nodesExpanded = 0;
+        GATnodesExpanded = 0;
         epsilonHGlobal = 0;
         epsilonDGlobal = 0;
     }
@@ -31,6 +33,7 @@ struct ResultContainer {
         solutionLength = res.solutionLength;
         nodesGenerated = res.nodesGenerated;
         nodesExpanded = res.nodesExpanded;
+        GATnodesExpanded = res.GATnodesExpanded;
         path = res.path;
 		lookaheadCpuTime = res.lookaheadCpuTime;
 		epsilonHGlobal = res.epsilonHGlobal;
@@ -46,6 +49,7 @@ struct ResultContainer {
             solutionLength = rhs.solutionLength;
             nodesGenerated = rhs.nodesGenerated;
             nodesExpanded = rhs.nodesExpanded;
+            GATnodesExpanded = rhs.GATnodesExpanded;
             path = rhs.path;
             lookaheadCpuTime = rhs.lookaheadCpuTime;
             epsilonHGlobal = rhs.epsilonHGlobal;

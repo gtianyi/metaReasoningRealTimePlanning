@@ -17,7 +17,7 @@ class MetaReasonAStar
     typedef typename Domain::HashState Hash;
 
 public:
-    MetaReasonAStar(Domain& domain_, double lookahead_, string sorting_)
+    MetaReasonAStar(Domain& domain_, size_t lookahead_, string sorting_)
         : domain(domain_)
         , lookahead(lookahead_)
         , sortingFunction(sorting_)
@@ -38,7 +38,7 @@ public:
 
         // This starts at 1, because we had to expand start to get the top level
         // actions
-        int expansions = 1;
+        size_t expansions = 1;
 
         // Expand until the limit
         while (!open.empty() && (expansions < lookahead)) {
@@ -55,10 +55,12 @@ public:
 
             // Check if current node is goal
             if (domain.isGoal(cur->getState())) {
+                DEBUG_MSG("reach goal in expansion");
                 return;
             }
 
             res.nodesExpanded++;
+            res.GATnodesExpanded++;
             expansions++;
 
             open.pop();
@@ -115,6 +117,6 @@ private:
 
 protected:
     Domain& domain;
-    double  lookahead;
+    size_t  lookahead;
     string  sortingFunction;
 };
