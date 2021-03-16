@@ -232,9 +232,6 @@ public:
             clock_t startTime = clock();
 
             auto start = actionQueue.front();
-            actionQueue.pop();
-            res.path.push(start->getState().toString());
-            res.solutionCost += start->getGValue();
 
             // mark this node as the start of the current search (to
             // prevent state pruning based on label)
@@ -271,7 +268,6 @@ public:
             // 4. our approach: compute benefit of doing more search
 
             // this loop should happen only once for approach 1-3
-            //
             while (commitQueue.empty() && !actionQueue.empty()) {
                 // do more search
                 metaReasonExpansionAlgo->expand(open, closed,
@@ -286,7 +282,6 @@ public:
                   open, start, closed, "not force Commit");
 
                 DEBUG_MSG("commit size: " << commitQueue.size());
-                cout << "commit size: " << commitQueue.size();
 
                 auto n = actionQueue.front();
                 actionQueue.pop();

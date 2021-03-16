@@ -5,6 +5,8 @@
 #include <memory>
 #include <unordered_map>
 
+#include "../utility/debug.h"
+
 using namespace std;
 
 template<class Domain, class Node>
@@ -24,9 +26,10 @@ public:
     void expand(
       PriorityQueue<shared_ptr<Node>>&              open,
       unordered_map<State, shared_ptr<Node>, Hash>& closed,
-      std::function<bool(
-        shared_ptr<Node>, unordered_map<State, shared_ptr<Node>, Hash>&,
-        PriorityQueue<shared_ptr<Node>>&)> duplicateDetection,
+      std::function<bool(shared_ptr<Node>,
+                         unordered_map<State, shared_ptr<Node>, Hash>&,
+                         PriorityQueue<shared_ptr<Node>>&)>
+                       duplicateDetection,
       ResultContainer& res)
     {
         // First things first, reorder open so it matches our expansion policy
@@ -41,6 +44,14 @@ public:
         while (!open.empty() && (expansions < lookahead)) {
             // Pop lowest fhat-value off open
             shared_ptr<Node> cur = open.top();
+
+            string debugStr = "";
+            debugStr += "{g: " + to_string(cur->getGValue()) + ",";
+            debugStr += "h: " + to_string(cur->getHValue()) + ",";
+            debugStr += "f: " + to_string(cur->getFValue()) + ",";
+            debugStr += "expansion: " + to_string(expansions) + "}";
+
+            DEBUG_MSG(debugStr);
 
             // Check if current node is goal
             if (domain.isGoal(cur->getState())) {
