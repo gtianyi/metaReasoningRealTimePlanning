@@ -4,7 +4,10 @@
 #include "domain/InverseTilePuzzle.h"
 #include "domain/PancakePuzzle.h"
 #include "domain/RaceTrack.h"
-#include "utility/cxxopts/include/cxxopts.hpp"
+
+#include <cxxopts.hpp>
+#include <nlohmann/json.hpp>
+
 #include <fstream>
 #include <iostream>
 #include <memory>
@@ -12,47 +15,23 @@
 
 using namespace std;
 
-void getCpuStatistic(vector<double>& lookaheadCpuTime,
-                     vector<double>& percentiles, double& mean)
+nlohmann::json parseResult(const ResultContainer&      res,
+                           const cxxopts::ParseResult& args)
 {
-    sort(lookaheadCpuTime.begin(), lookaheadCpuTime.end());
 
-    mean = accumulate(lookaheadCpuTime.begin(), lookaheadCpuTime.end(), 0.0) /
-           static_cast<double>(lookaheadCpuTime.size());
+    nlohmann::json record;
 
-    for (int i = 1; i <= 100; i++) {
-        size_t percentID =
-          static_cast<size_t>((static_cast<double>(i) / 100) *
-                              static_cast<double>(lookaheadCpuTime.size() - 1));
-        percentiles.push_back(lookaheadCpuTime[percentID]);
-    }
-}
+    record["node expanded"]  = res.nodesExpanded;
+    record["node generated"] = res.nodesGenerated;
+    record["solution found"] = res.solutionFound;
+    record["solution cost"]  = res.solutionCost;
+    record["instance"]       = args["instance"].as<std::string>();
+    record["algorithm"]      = args["alg"].as<std::string>();
+    record["lookahead"]      = args["lookahead"].as<int>();
+    record["domain"]         = args["domain"].as<std::string>();
+    record["subdomain"]      = args["subdomain"].as<std::string>();
 
-void parseResult(ResultContainer& res, string& outString, string algName)
-{
-    /*if (res.solutionFound && !domain.validatePath(res.path)) {*/
-    // cout << "Invalid path detected from search: " << expansionModule
-    //<< endl;
-    // exit(1);
-    /*}*/
-
-    outString += "\"" + algName + "\": " + to_string(res.solutionCost) +
-                 ", \"epsilonHGlobal\": " + to_string(res.epsilonHGlobal) +
-                 ", \"epsilonDGlobal\": " + to_string(res.epsilonDGlobal) +
-                 ", \"cpu-percentiles\": [";
-
-    vector<double> cpuPercentiles;
-    double         cpuMean;
-
-    getCpuStatistic(res.lookaheadCpuTime, cpuPercentiles, cpuMean);
-
-    for (auto& t : cpuPercentiles) {
-        outString += to_string(t) + ", ";
-    }
-
-    outString.pop_back();
-    outString.pop_back();
-    outString += "], \"cpu-mean\": " + to_string(cpuMean) + ", ";
+    return record;
 }
 
 template<class Domain>
@@ -89,7 +68,10 @@ int main(int argc, char** argv)
                 cxxopts::value<int>()->default_value("100"));
 
     optionAdder("o,performenceOut", "performence Out file",
-                cxxopts::value<std::string>()->default_value("out.txt"));
+                cxxopts::value<std::string>());
+
+    optionAdder("i,instance", "instance file name",
+                cxxopts::value<std::string>()->default_value("2-4x4.st"));
 
     optionAdder("v,pathOut", "path Out file", cxxopts::value<std::string>());
 
@@ -106,7 +88,6 @@ int main(int argc, char** argv)
     auto subDomain      = args["subdomain"].as<std::string>();
     auto alg            = args["alg"].as<std::string>();
     auto lookaheadDepth = args["lookahead"].as<int>();
-    auto outPerfromence = args["performenceOut"].as<string>();
 
     ResultContainer res;
 
@@ -177,16 +158,18 @@ int main(int argc, char** argv)
         exit(1);
     }
 
-    string outString = "{ ";
+    nlohmann::json record = parseResult(res, args);
 
-    parseResult(res, outString, alg);
+    // dumpout result and observed states
+    if (args.count("performenceOut")) {
 
-    outString += "\"Lookahead\": " + to_string(lookaheadDepth) + " }";
+        ofstream out(args["performenceOut"].as<std::string>());
+        out << record;
+        out.close();
 
-    ofstream out(outPerfromence);
-
-    out << outString;
-    out.close();
+    } else {
+        cout << record << endl;
+    }
 
     // dumpout solution path
     if (args.count("pathOut")) {

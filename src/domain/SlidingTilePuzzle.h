@@ -1,6 +1,5 @@
 #pragma once
 #include "../utility/SlidingWindow.h"
-#include "../utility/rapidjson/document.h"
 #include <algorithm>
 #include <bitset>
 #include <cmath>
