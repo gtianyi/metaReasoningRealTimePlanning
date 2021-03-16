@@ -246,6 +246,8 @@ public:
                 res.solutionFound  = true;
                 res.epsilonHGlobal = domain.epsilonHGlobal();
                 res.epsilonDGlobal = domain.epsilonDGlobal();
+                res.path.push(start->getState().toString());
+                res.solutionLength += 1;
 
                 return res;
             }
