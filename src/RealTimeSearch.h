@@ -42,7 +42,7 @@ public:
         DiscreteDistribution distribution;
         bool                 twoDistribtuionCleared;
 
-        shared_ptr<Node>     nancyFrontier;
+        shared_ptr<Node> nancyFrontier;
 
     public:
         Cost getGValue() const { return g; }
@@ -263,7 +263,11 @@ public:
                         return res;
                     }
                 }
-                res.paths.push_back(curPath);
+                if (!curPath.empty()) {
+                    curPath.push_back(
+                      actionQueue.front()->getState().toString());
+                    res.paths.push_back(curPath);
+                }
 
                 start = actionQueue.front();
             }
@@ -271,9 +275,9 @@ public:
             // Check if a goal has been reached
             if (domain.isGoal(start->getState())) {
                 res.solutionFound = true;
-                //vector<string> curPath;
-                //curPath.push_back(start->getState().toString());
-                //res.paths.push_back(curPath);
+                // vector<string> curPath;
+                // curPath.push_back(start->getState().toString());
+                // res.paths.push_back(curPath);
 
                 res.solutionLength += 1;
 
@@ -315,9 +319,11 @@ public:
 
                 auto n = actionQueue.front();
                 actionQueue.pop();
-                vector<string> curPath;
-                curPath.push_back(n->getState().toString());
-                res.paths.push_back(curPath);
+                if (decisionModule != "alltheway") {
+                    vector<string> curPath;
+                    curPath.push_back(n->getState().toString());
+                    res.paths.push_back(curPath);
+                }
                 // TODO cost can not be computed here
                 // res.solutionCost += n->getGValue();
                 res.solutionLength += 1;
