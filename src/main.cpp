@@ -36,6 +36,17 @@ nlohmann::json parseResult(const ResultContainer&      res,
     return record;
 }
 
+nlohmann::json parseVisResult(const ResultContainer& res)
+{
+
+    nlohmann::json record;
+
+    record["path"]     = res.paths;
+    record["visited"] =  res.visited;
+    
+    return record;
+}
+
 template<class Domain>
 ResultContainer startAlg(shared_ptr<Domain> domain_ptr, string decisionModule,
                          size_t lookahead)
@@ -75,7 +86,8 @@ int main(int argc, char** argv)
     optionAdder("i,instance", "instance file name",
                 cxxopts::value<std::string>()->default_value("2-4x4.st"));
 
-    optionAdder("v,pathOut", "path Out file", cxxopts::value<std::string>());
+    optionAdder("v,visOut", "visulization Out file",
+                cxxopts::value<std::string>());
 
     optionAdder("h,help", "Print usage");
 
@@ -174,12 +186,10 @@ int main(int argc, char** argv)
     }
 
     // dumpout solution path
-    if (args.count("pathOut")) {
-        ofstream pout(args["pathOut"].as<std::string>());
-        while (!res.path.empty()) {
-            pout << res.path.front();
-            res.path.pop();
-        }
-        pout.close();
+    if (args.count("visOut")) {
+        ofstream vout(args["visOut"].as<std::string>());
+        auto     visJson = parseVisResult(res);
+        vout << visJson;
+        vout.close();
     }
 }

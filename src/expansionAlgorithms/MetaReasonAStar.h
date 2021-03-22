@@ -41,6 +41,7 @@ public:
         size_t expansions = 1;
 
         // Expand until the limit
+        vector<string> visited;
         while (!open.empty() && (expansions < lookahead)) {
             // Pop lowest fhat-value off open
             shared_ptr<Node> cur = open.top();
@@ -53,9 +54,11 @@ public:
 
             DEBUG_MSG(debugStr);
 
+            visited.push_back(cur->getState().toString());
             // Check if current node is goal
             if (domain.isGoal(cur->getState())) {
                 DEBUG_MSG("reach goal in expansion");
+                res.visited.push_back(visited);
                 return;
             }
 
@@ -104,6 +107,8 @@ public:
                 domain.pushEpsilonDGlobal(epsD);
             }
         }
+
+        res.visited.push_back(visited);
     }
 
 private:

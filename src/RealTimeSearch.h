@@ -243,11 +243,12 @@ public:
             auto start = actionQueue.front();
 
             if (decisionModule == "alltheway") {
+                vector<string> curPath;
                 while (actionQueue.size() > 1) {
 
                     start = actionQueue.front();
                     actionQueue.pop();
-                    res.path.push(start->getState().toString());
+                    curPath.push_back(start->getState().toString());
                     // TODO cost can not be computed here
                     // res.solutionCost += n->getGValue();
                     res.solutionLength += 1;
@@ -262,6 +263,7 @@ public:
                         return res;
                     }
                 }
+                res.paths.push_back(curPath);
 
                 start = actionQueue.front();
             }
@@ -269,7 +271,10 @@ public:
             // Check if a goal has been reached
             if (domain.isGoal(start->getState())) {
                 res.solutionFound = true;
-                res.path.push(start->getState().toString());
+                //vector<string> curPath;
+                //curPath.push_back(start->getState().toString());
+                //res.paths.push_back(curPath);
+
                 res.solutionLength += 1;
 
                 return res;
@@ -310,7 +315,9 @@ public:
 
                 auto n = actionQueue.front();
                 actionQueue.pop();
-                res.path.push(n->getState().toString());
+                vector<string> curPath;
+                curPath.push_back(n->getState().toString());
+                res.paths.push_back(curPath);
                 // TODO cost can not be computed here
                 // res.solutionCost += n->getGValue();
                 res.solutionLength += 1;

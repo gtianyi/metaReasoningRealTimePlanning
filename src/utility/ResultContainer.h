@@ -5,7 +5,8 @@
 using namespace std;
 
 struct ResultContainer {
-    queue<string> path;
+    vector<vector<string>> paths;
+    vector<vector<string>> visited;
     bool solutionFound;
     double solutionCost;
     double solutionLength;
@@ -34,7 +35,8 @@ struct ResultContainer {
         nodesGenerated = res.nodesGenerated;
         nodesExpanded = res.nodesExpanded;
         GATnodesExpanded = res.GATnodesExpanded;
-        path = res.path;
+        paths = res.paths;
+        visited = res.visited;
 		lookaheadCpuTime = res.lookaheadCpuTime;
 		epsilonHGlobal = res.epsilonHGlobal;
 		epsilonDGlobal = res.epsilonDGlobal;
@@ -50,7 +52,8 @@ struct ResultContainer {
             nodesGenerated = rhs.nodesGenerated;
             nodesExpanded = rhs.nodesExpanded;
             GATnodesExpanded = rhs.GATnodesExpanded;
-            path = rhs.path;
+            paths = rhs.paths;
+            visited = rhs.visited;
             lookaheadCpuTime = rhs.lookaheadCpuTime;
             epsilonHGlobal = rhs.epsilonHGlobal;
             epsilonDGlobal = rhs.epsilonDGlobal;

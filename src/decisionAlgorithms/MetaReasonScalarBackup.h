@@ -3,7 +3,6 @@
 #include "DecisionAlgorithm.h"
 #include <functional>
 #include <memory>
-#include <stack>
 
 using namespace std;
 
