@@ -40,9 +40,9 @@ public:
         bool                 open;
         int                  delayCntr;
         DiscreteDistribution distribution;
-        bool                 twoDistribtuionCleared;
 
         shared_ptr<Node> nancyFrontier;
+        Cost             backupHHat;
 
     public:
         Cost getGValue() const { return g; }
@@ -172,6 +172,15 @@ public:
             return n1->getHHatValue() < n2->getHHatValue();
         }
 
+        static bool compareNodesBackedHHat(const shared_ptr<Node> n1,
+                                           const shared_ptr<Node> n2)
+        {
+            /*if (n1->backupHHat == n2->backupHHat) {*/
+            // return n1->getGValue() > n2->getGValue();
+            /*}*/
+            return n1->backupHHat < n2->backupHHat;
+        }
+
         static double getLowerConfidence(const shared_ptr<Node> n)
         {
             double f    = n->getFValue();
@@ -207,6 +216,9 @@ public:
               make_shared<MetaReasonScalarBackup<Domain, Node>>(
                 decisionModule_);
         } else if (decisionModule == "dtrts") {
+            metaReasonDecisionAlgo =
+              make_shared<MetaReasonNancyBackup<Domain, Node>>(decisionModule_,
+                                                               domain, lookahead);
         } else {
             cerr << "unknown decision module: " << decisionModule << "\n";
             exit(1);
@@ -313,7 +325,7 @@ public:
 
                 // meta-reason about how much to commit
                 commitQueue = metaReasonDecisionAlgo->backup(
-                  open, start, closed, "not force Commit");
+                  open, start, closed, false);
 
                 DEBUG_MSG("commit size: " << commitQueue.size());
 
@@ -339,7 +351,7 @@ public:
             if (commitQueue.empty()) {
                 // force to commit at least one action
                 commitQueue = metaReasonDecisionAlgo->backup(
-                  open, start, closed, "force Commit");
+                  open, start, closed, true);
             }
 
             assert(commitQueue.size() > 0);
