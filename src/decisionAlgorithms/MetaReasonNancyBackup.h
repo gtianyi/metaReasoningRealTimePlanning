@@ -1,4 +1,5 @@
 #pragma once
+#include "../utility/DiscreteDistribution.h"
 #include "../utility/PriorityQueue.h"
 #include "DecisionAlgorithm.h"
 #include <functional>
@@ -42,10 +43,10 @@ public:
 protected:
     void dijkstraNancyBackup(
       PriorityQueue<shared_ptr<Node>>              open,
-      unordered_map<State, shared_ptr<Node>, Hash> closed)
+      unordered_map<State, shared_ptr<Node>, Hash> closedCopy)
     {
         // Start by initializing every state in closed to inf hhat
-        for (auto it = closed.begin(); it != closed.end(); it++) {
+        for (auto it = closedCopy.begin(); it != closedCopy.end(); it++) {
             it->second->backupHHat = numeric_limits<double>::infinity();
         }
 
@@ -58,17 +59,17 @@ protected:
         // Order open by hhat
         open.swapComparator(Node::compareNodesBackedHHat);
 
-        while (!closed.empty() && !open.empty()) {
+        while (!closedCopy.empty() && !open.empty()) {
             auto cur = open.top();
             open.pop();
 
-            closed.erase(cur->getState());
+            closedCopy.erase(cur->getState());
             auto preds = domain.predecessors(cur->getState());
 
             for (const auto& s : preds) {
-                auto it = closed.find(s);
+                auto it = closedCopy.find(s);
 
-                if (it == closed.end()) {
+                if (it == closedCopy.end()) {
                     continue;
                 }
 
@@ -192,7 +193,7 @@ protected:
         return bestChild;
     }
 
-    // what if there is no beta?
+    // what if there is no beta? just commit?
     shared_ptr<Node> getBeta(shared_ptr<Node> node)
     {
         vector<State> children = domain.successors(node->getState());
@@ -216,25 +217,60 @@ protected:
 
             if (childNode->nancyFrontier->getFHatValue() < bestFHat) {
                 secondBestChild = bestChild;
-                bestChild = childNode;
-                bestFHat  = childNode->nancyFrontier->getFHatValue();
+                bestChild       = childNode;
+                bestFHat        = childNode->nancyFrontier->getFHatValue();
             }
         }
 
         return secondBestChild;
     }
 
-    Distribtuion distributionAfterSearch(shared_ptr<Node> node,
-                                         double           timeStepFraction)
-    {}
-
-    double expectedMinimum(Distribtuion d1, Distribution d2)
+    DiscreteDistribution distributionAfterSearch(shared_ptr<Node> node,
+                                                 double timeStepFraction)
     {
-        // numerical integrate
+        auto mean = node->nancyFrontier->getFHatValue();
+        // TODO path based expansion delay
+        double ds =
+          timeStepFraction * lookahead / node->getAverageExpansionDelay();
+
+        // TODO path based epsilon h
+        auto var = pow(node->nancyFrontier->getEpsilonH() *
+                         node->nancyFrontier->getDValue(),
+                       2.0) *
+                   (1 - min(1, ds / node->nancyFrontier->getDValue()));
+        DiscreteDistribution dist(100, mean, var);
+        return dist;
+    }
+
+    double expectedMinimum(DiscreteDistribution d1, DiscreteDistribution d2)
+    {
+        double expMin = 0;
+
+        for (const auto& binAlpah : d1) {
+            for (const auto& binBeta : d2) {
+                expMin = min(binAlpah.cost, binBeta.cost) *
+                         binAlpah.probability * binBeta.probability;
+            }
+        }
+
+        return expMin;
     }
 
     // probability of choose d1
-    double pChoose(Distribtuion d1, Distribution d2) {}
+    double pChoose(DiscreteDistribution d1, DiscreteDistribution d2)
+    {
+        double prob = 0;
+
+        for (const auto& binAlpah : d1) {
+            for (const auto& binBeta : d2) {
+                if (binAlpah.cost < binBeta.cost) {
+                    prob += binAlpah.probability * binBeta.probability;
+                }
+            }
+        }
+
+        return prob;
+    }
 
     string                                       decisionModule;
     Domain&                                      domain;
