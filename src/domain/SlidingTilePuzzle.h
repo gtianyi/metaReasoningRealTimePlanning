@@ -479,25 +479,27 @@ public:
         correctedD.clear();
         correctedH.clear();
         correctedDerr.clear();
-        expansionDelayWindow.clear();
+        averageExpansionDelay     = 0;
+        averageExpansionDelayCntr = 0;
     }
 
-    void pushDelayWindow(int val) { expansionDelayWindow.push(val); }
+    void pushDelayWindow(unsigned int val)
+    {
+        ++averageExpansionDelayCntr;
+
+        averageExpansionDelay -=
+          averageExpansionDelay / averageExpansionDelayCntr;
+
+        averageExpansionDelay += static_cast<double>(val) /
+                                 static_cast<double>(averageExpansionDelayCntr);
+    }
 
     double averageDelayWindow()
     {
-        if (expansionDelayWindow.size() == 0)
+        if (averageExpansionDelay < 1)
             return 1;
 
-        double avg = 0;
-
-        for (auto i : expansionDelayWindow) {
-            avg += i;
-        }
-
-        avg /= static_cast<double>(expansionDelayWindow.size());
-
-        return avg;
+        return averageExpansionDelay;
     }
 
     bool validatePath(queue<char> path)
@@ -535,7 +537,8 @@ public:
     std::vector<std::vector<int>>         endBoard;
     size_t                                size;
     State                                 startState;
-    SlidingWindow<int>                    expansionDelayWindow;
+    double                                averageExpansionDelay;
+    unsigned int                          averageExpansionDelayCntr;
     unordered_map<State, Cost, HashState> correctedH;
     unordered_map<State, Cost, HashState> correctedD;
     unordered_map<State, Cost, HashState> correctedDerr;

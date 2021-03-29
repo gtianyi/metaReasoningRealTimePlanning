@@ -55,6 +55,8 @@ public:
             DEBUG_MSG(debugStr);
 
             visited.push_back(cur->getState().toString());
+
+            domain.pushDelayWindow(cur->getDelayCntr());
             // Check if current node is goal
             if (domain.isGoal(cur->getState())) {
                 DEBUG_MSG("reach goal in expansion");
@@ -69,11 +71,17 @@ public:
             open.pop();
             cur->close();
 
+            // Increment the delay counts for every other node on open
+            for (auto n : open) {
+                n->incDelayCntr();
+            }
+
             vector<State> children = domain.successors(cur->getState());
             res.nodesGenerated += children.size();
 
-            State bestChild;
-            Cost  bestF = numeric_limits<double>::infinity();
+            State                    bestChild;
+            Cost                     bestF = numeric_limits<double>::infinity();
+            vector<shared_ptr<Node>> childrenNodes;
 
             for (State child : children) {
                 shared_ptr<Node> childNode = make_shared<Node>(
@@ -94,17 +102,20 @@ public:
                 if (!dup) {
                     open.push(childNode);
                     closed[child] = childNode;
+                    childrenNodes.push_back(childNode);
                 }
             }
 
-            // Learn one-step error
+            // Learn path-based one-step error
             if (bestF != numeric_limits<double>::infinity()) {
                 Cost epsD = (1 + domain.distance(bestChild)) - cur->getDValue();
                 Cost epsH = (domain.getEdgeCost(bestChild) +
                              domain.heuristic(bestChild)) -
                             cur->getHValue();
 
-                cur->pushPathBasedEpsilons(epsH, epsD);
+                for (auto child : childrenNodes) {
+                    child->pushPathBasedEpsilons(epsH, epsD);
+                }
             }
         }
 

@@ -231,10 +231,13 @@ protected:
         auto mean = node->nancyFrontier->getFHatValue();
         // TODO path based expansion delay
         double ds =
-          timeStepFraction * lookahead / node->getAverageExpansionDelay();
+          // for identity action
+          timeStepFraction * lookahead / domain.averageDelayWindow();
+        // for Slo'RTS
+        // node->getDValue();
 
         // TODO path based epsilon h
-        auto var = pow(node->nancyFrontier->getEpsilonH() *
+        auto var = pow(node->nancyFrontier->getPathBasedEpsilonH() *
                          node->nancyFrontier->getDValue(),
                        2.0) *
                    (1 - min(1, ds / node->nancyFrontier->getDValue()));
