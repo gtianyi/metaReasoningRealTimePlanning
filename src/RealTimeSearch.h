@@ -60,11 +60,11 @@ public:
     {
         ResultContainer res;
 
-        shared_ptr<Node> initNode = make_shared<Node>(
-          0, domain.heuristic(domain.getStartState()),
-          domain.distance(domain.getStartState()),
-          domain.distanceErr(domain.getStartState()), domain.epsilonHGlobal(),
-          domain.epsilonDGlobal(), domain.getStartState(), nullptr);
+        shared_ptr<Node> initNode =
+          make_shared<Node>(0, domain.heuristic(domain.getStartState()),
+                            domain.distance(domain.getStartState()),
+                            domain.distanceErr(domain.getStartState()), 0, 0, 0,
+                            domain.getStartState(), nullptr);
 
         int count = 0;
 

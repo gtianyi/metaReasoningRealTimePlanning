@@ -159,56 +159,6 @@ public:
         return correctedH[state];
     }
 
-    Cost epsilonHGlobal() { return curEpsilonH; }
-
-    Cost epsilonDGlobal() { return curEpsilonD; }
-
-    // Cost epsilonHVarGlobal() { return curEpsilonHVar; }
-
-    void updateEpsilons()
-    {
-        /*if (expansionCounter < 100) {*/
-        // curEpsilonD    = 0;
-        // curEpsilonH    = 0;
-        // curEpsilonHVar = 0;
-
-        // return;
-        /*}*/
-
-        curEpsilonD = epsilonDSum / expansionCounter;
-
-        curEpsilonH = epsilonHSum / expansionCounter;
-
-        /* curEpsilonHVar =*/
-        //(epsilonHSumSq - (epsilonHSum * epsilonHSum) / expansionCounter) /
-        //(expansionCounter - 1);
-
-        // assert(curEpsilonHVar > 0);
-    }
-
-    void pushEpsilonHGlobal(double eps)
-    {
-        /*if (eps < 0)*/
-        // eps = 0;
-        // else if (eps > 1)
-        /*eps = 1;*/
-
-        epsilonHSum += eps;
-        // epsilonHSumSq += eps * eps;
-        expansionCounter++;
-    }
-
-    void pushEpsilonDGlobal(double eps)
-    {
-        /*if (eps < 0)*/
-        // eps = 0;
-        // else if (eps > 1)
-        /*eps = 1;*/
-
-        epsilonDSum += eps;
-        expansionCounter++;
-    }
-
     void updateDistance(const State& state, Cost value)
     {
         correctedD[state] = value;
@@ -297,12 +247,6 @@ public:
 
     void initialize()
     {
-        epsilonDSum      = 0;
-        epsilonHSum      = 0;
-        expansionCounter = 0;
-        curEpsilonD      = 0;
-        curEpsilonH      = 0;
-
         correctedD.clear();
         correctedH.clear();
         correctedDerr.clear();
@@ -403,14 +347,6 @@ private:
     unordered_map<State, Cost, HashState>          correctedD;
     unordered_map<State, Cost, HashState>          correctedDerr;
     unordered_map<State, vector<State>, HashState> predecessorsTable;
-
-    double epsilonHSum;
-    // double epsilonHSumSq;
-    double epsilonDSum;
-    double curEpsilonH;
-    double curEpsilonD;
-    // double curEpsilonHVar;
-    double expansionCounter;
 
     size_t goalX;
     size_t goalY;

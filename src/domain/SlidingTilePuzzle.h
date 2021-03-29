@@ -286,46 +286,6 @@ public:
         return correctedH[state];
     }
 
-    Cost epsilonHGlobal() { return curEpsilonH; }
-
-    Cost epsilonDGlobal() { return curEpsilonD; }
-
-    void updateEpsilons()
-    {
-        if (expansionCounter == 0) {
-            curEpsilonD = 0;
-            curEpsilonH = 0;
-
-            return;
-        }
-
-        curEpsilonD = epsilonDSum / expansionCounter;
-
-        curEpsilonH = epsilonHSum / expansionCounter;
-    }
-
-    void pushEpsilonHGlobal(double eps)
-    {
-        /*if (eps < 0)*/
-        // eps = 0;
-        // else if (eps > 1)
-        /*eps = 1;*/
-
-        epsilonHSum += eps;
-        expansionCounter++;
-    }
-
-    void pushEpsilonDGlobal(double eps)
-    {
-        /*if (eps < 0)*/
-        // eps = 0;
-        // else if (eps > 1)
-        // eps = 1;
-
-        epsilonDSum += eps;
-        expansionCounter++;
-    }
-
     void updateDistance(const State& state, Cost value)
     {
         correctedD[state] = value;
@@ -516,12 +476,6 @@ public:
 
     void initialize()
     {
-        epsilonDSum      = 0;
-        epsilonHSum      = 0;
-        expansionCounter = 0;
-        curEpsilonD      = 0;
-        curEpsilonH      = 0;
-
         correctedD.clear();
         correctedH.clear();
         correctedDerr.clear();
@@ -585,12 +539,6 @@ public:
     unordered_map<State, Cost, HashState> correctedH;
     unordered_map<State, Cost, HashState> correctedD;
     unordered_map<State, Cost, HashState> correctedDerr;
-
-    double epsilonHSum;
-    double epsilonDSum;
-    double curEpsilonH;
-    double curEpsilonD;
-    double expansionCounter;
 
     static vector<int> table;
 };

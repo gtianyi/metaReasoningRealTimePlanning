@@ -285,55 +285,6 @@ public:
         return correctedH[state];
     }
 
-    Cost epsilonHGlobal() { return curEpsilonH; }
-
-    Cost epsilonDGlobal() { return curEpsilonD; }
-
-    void updateEpsilons()
-    {
-        // TODO
-
-        if (expansionCounter == 0) {
-            curEpsilonD = 0;
-            curEpsilonH = 0;
-
-            return;
-        }
-
-        curEpsilonD = epsilonDSum / expansionCounter;
-
-        curEpsilonH = epsilonHSum / expansionCounter;
-    }
-
-    void pushEpsilonHGlobal(double eps)
-    {
-        // TODO
-
-        // if (eps < 0)
-        // eps = 0;
-        /* No idea why set the limit to 1
-        else if (eps > 1){
-            eps = 1;
-        }
-        */
-        epsilonHSum += eps;
-        expansionCounter++;
-    }
-
-    void pushEpsilonDGlobal(double eps)
-    {
-        // TODO
-
-        // if (eps < 0)
-        // eps = 0;
-        /*
-        else if (eps > 1)
-            eps = 1;
-        */
-        epsilonDSum += eps;
-        expansionCounter++;
-    }
-
     void updateDistance(const State& state, Cost value)
     {
         correctedD[state] = value;
@@ -460,12 +411,6 @@ public:
 
     void initialize()
     {
-        epsilonDSum      = 0;
-        epsilonHSum      = 0;
-        expansionCounter = 0;
-        curEpsilonD      = 0;
-        curEpsilonH      = 0;
-
         correctedD.clear();
         correctedDerr.clear();
         correctedH.clear();
@@ -523,10 +468,4 @@ public:
     int                                   puzzleVariant;
     int                                   heuristicVariant;
     size_t                                size;
-
-    double epsilonHSum;
-    double epsilonDSum;
-    double curEpsilonH;
-    double curEpsilonD;
-    double expansionCounter;
 };

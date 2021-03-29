@@ -8,7 +8,6 @@ using namespace std;
 template<class Domain>
 class Node
 {
-
     typedef typename Domain::State     State;
     typedef typename Domain::Cost      Cost;
     typedef typename Domain::HashState Hash;
@@ -17,13 +16,15 @@ class Node
     Cost                 h;
     Cost                 d;
     Cost                 derr;
-    Cost                 epsH;
-    Cost                 epsD;
     shared_ptr<Node>     parent;
     State                stateRep;
     bool                 open;
     int                  delayCntr;
     DiscreteDistribution distribution;
+
+    double       curEpsilonH;
+    double       curEpsilonD;
+    unsigned int expansionCounter;
 
     shared_ptr<Node> nancyFrontier;
     Cost             backupHHat;
@@ -34,21 +35,23 @@ public:
     Cost getDValue() const { return d; }
     Cost getDErrValue() const { return derr; }
     Cost getFValue() const { return g + h; }
-    Cost getEpsilonH() const { return epsH; }
-    Cost getEpsilonD() const { return epsD; }
     Cost getFHatValue() const { return g + getHHatValue(); }
-    Cost getDHatValue() const { return (derr / (1.0 - epsD)); }
-    Cost getHHatValue() const { return h + getDHatValue() * epsH; }
+    Cost getDHatValue() const { return (derr / (1.0 - curEpsilonD)); }
+    Cost getHHatValue() const { return h + getDHatValue() * curEpsilonH; }
 
     State            getState() const { return stateRep; }
     shared_ptr<Node> getParent() const { return parent; }
+
+    Cost         getPathBasedEpsilonH() { return curEpsilonH; }
+    Cost         getPathBasedEpsilonD() { return curEpsilonD; }
+    unsigned int getPathBasedExpansionCounter() { return expansionCounter; }
 
     void setHValue(Cost val) { h = val; }
     void setGValue(Cost val) { g = val; }
     void setDValue(Cost val) { d = val; }
     void setDErrValue(Cost val) { derr = val; }
-    void setEpsilonH(Cost val) { epsH = val; }
-    void setEpsilonD(Cost val) { epsD = val; }
+    void setEpsilonH(Cost val) { curEpsilonH = val; }
+    void setEpsilonD(Cost val) { curEpsilonD = val; }
     void setState(State s) { stateRep = s; }
     void setParent(shared_ptr<Node> p) { parent = p; }
 
@@ -58,17 +61,49 @@ public:
 
     void markStart() { stateRep.markStart(); }
 
-    void incDelayCntr() { delayCntr++; }
+    void incDelayCntr() { ++delayCntr; }
     int  getDelayCntr() { return delayCntr; }
 
+    void pushPathBasedEpsilons(double epsH_, double epsD_)
+    {
+        incExpansionCounter();
+        pushEpsilonHPathBased(epsH_);
+        pushEpsilonHPathBased(epsD_);
+    }
+
+    void incExpansionCounter() { ++expansionCounter; }
+
+    void pushEpsilonHPathBased(double eps)
+    {
+        if (expansionCounter < 5) {
+            curEpsilonH = 0;
+            return;
+        }
+
+        curEpsilonH -= curEpsilonH / expansionCounter;
+        curEpsilonH += eps / expansionCounter;
+    }
+
+    void pushEpsilonDPathBased(double eps)
+    {
+        if (expansionCounter < 5) {
+            curEpsilonD = 0;
+            return;
+        }
+
+        curEpsilonD -= curEpsilonD / expansionCounter;
+        curEpsilonD += eps / expansionCounter;
+    }
+
     Node(Cost g_, Cost h_, Cost d_, Cost derr_, Cost epsH_, Cost epsD_,
-         State state_, shared_ptr<Node> parent_)
+         unsigned int expansionCounter_, State state_, shared_ptr<Node> parent_)
         : g(g_)
         , h(h_)
         , d(d_)
         , derr(derr_)
-        , epsH(epsH_)
-        , epsD(epsD_)
+        , curEpsilonH(epsH_)
+        , curEpsilonD(epsD_)
+        , expansionCounter(expansionCounter_)
         , parent(parent_)
         , stateRep(state_)
     {

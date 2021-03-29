@@ -79,8 +79,9 @@ public:
                 shared_ptr<Node> childNode = make_shared<Node>(
                   cur->getGValue() + domain.getEdgeCost(child),
                   domain.heuristic(child), domain.distance(child),
-                  domain.distanceErr(child), domain.epsilonHGlobal(),
-                  domain.epsilonDGlobal(), child, cur);
+                  domain.distanceErr(child), cur->getPathBasedEpsilonH(),
+                  cur->getPathBasedEpsilonD(),
+                  cur->getPathBasedExpansionCounter(), child, cur);
 
                 bool dup = duplicateDetection(childNode, closed, open);
 
@@ -103,8 +104,7 @@ public:
                              domain.heuristic(bestChild)) -
                             cur->getHValue();
 
-                domain.pushEpsilonHGlobal(epsH);
-                domain.pushEpsilonDGlobal(epsD);
+                cur->pushPathBasedEpsilons(epsH, epsD);
             }
         }
 
