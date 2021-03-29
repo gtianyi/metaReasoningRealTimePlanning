@@ -229,14 +229,15 @@ protected:
                                                  double timeStepFraction)
     {
         auto mean = node->nancyFrontier->getFHatValue();
-        // TODO path based expansion delay
+        //Just use global delay
+        // version 2 try path based expansion delay? 
         double ds =
           // for identity action
           timeStepFraction * lookahead / domain.averageDelayWindow();
         // for Slo'RTS
         // node->getDValue();
 
-        // TODO path based epsilon h
+        // we are using path-based heuristic error here
         auto var = pow(node->nancyFrontier->getPathBasedEpsilonH() *
                          node->nancyFrontier->getDValue(),
                        2.0) *

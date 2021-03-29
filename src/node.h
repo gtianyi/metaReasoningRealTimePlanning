@@ -19,7 +19,7 @@ class Node
     shared_ptr<Node>     parent;
     State                stateRep;
     bool                 open;
-    int                  delayCntr;
+    unsigned int         delayCntr;
     DiscreteDistribution distribution;
 
     double       curEpsilonH;
@@ -61,8 +61,8 @@ public:
 
     void markStart() { stateRep.markStart(); }
 
-    void incDelayCntr() { ++delayCntr; }
-    int  getDelayCntr() { return delayCntr; }
+    void         incDelayCntr() { ++delayCntr; }
+    unsigned int getDelayCntr() { return delayCntr; }
 
     void pushPathBasedEpsilons(double epsH_, double epsD_)
     {

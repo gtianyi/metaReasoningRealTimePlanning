@@ -1,6 +1,7 @@
 #pragma once
 //#include "decisionAlgorithms/DecisionAlgorithm.h"
 #include "decisionAlgorithms/MetaReasonScalarBackup.h"
+#include "decisionAlgorithms/MetaReasonNancyBackup.h"
 #include "expansionAlgorithms/MetaReasonAStar.h"
 #include "learningAlgorithms/MetaReasonDijkstra.h"
 #include "node.h"
