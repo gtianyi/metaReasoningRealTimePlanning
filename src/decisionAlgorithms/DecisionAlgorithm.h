@@ -14,8 +14,9 @@ class DecisionAlgorithm
 
 public:
     virtual stack<shared_ptr<Node>> backup(
-      PriorityQueue<shared_ptr<Node>>& open, shared_ptr<Node> start,
-      unordered_map<State, shared_ptr<Node>, Hash>& closed, const string&) = 0;
+      const PriorityQueue<shared_ptr<Node>>& open, shared_ptr<Node> start,
+      const unordered_map<State, shared_ptr<Node>, Hash>& closed_,
+      const bool                                          isForceCommit) = 0;
 
     virtual ~DecisionAlgorithm() = default;
 };

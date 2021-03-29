@@ -6,7 +6,7 @@
 using namespace std;
 
 template<class Domain>
-class Node
+class SearchNode
 {
     typedef typename Domain::State     State;
     typedef typename Domain::Cost      Cost;
@@ -16,18 +16,22 @@ class Node
     Cost                 h;
     Cost                 d;
     Cost                 derr;
-    shared_ptr<Node>     parent;
-    State                stateRep;
     bool                 open;
     unsigned int         delayCntr;
     DiscreteDistribution distribution;
+
+    double startEpsilonH;
+    double startEpsilonD;
 
     double       curEpsilonH;
     double       curEpsilonD;
     unsigned int expansionCounter;
 
-    shared_ptr<Node> nancyFrontier;
-    Cost             backupHHat;
+    shared_ptr<SearchNode<Domain>> parent;
+    State                          stateRep;
+
+    shared_ptr<SearchNode<Domain>> nancyFrontier;
+    Cost                           backupHHat;
 
 public:
     Cost getGValue() const { return g; }
@@ -38,9 +42,14 @@ public:
     Cost getFHatValue() const { return g + getHHatValue(); }
     Cost getDHatValue() const { return (derr / (1.0 - curEpsilonD)); }
     Cost getHHatValue() const { return h + getDHatValue() * curEpsilonH; }
+    Cost getBackupHHatValue() const { return backupHHat; }
+    shared_ptr<SearchNode<Domain>> getNancyFrontier() const
+    {
+        return nancyFrontier;
+    }
 
-    State            getState() const { return stateRep; }
-    shared_ptr<Node> getParent() const { return parent; }
+    State                          getState() const { return stateRep; }
+    shared_ptr<SearchNode<Domain>> getParent() const { return parent; }
 
     Cost         getPathBasedEpsilonH() { return curEpsilonH; }
     Cost         getPathBasedEpsilonD() { return curEpsilonD; }
@@ -53,7 +62,12 @@ public:
     void setEpsilonH(Cost val) { curEpsilonH = val; }
     void setEpsilonD(Cost val) { curEpsilonD = val; }
     void setState(State s) { stateRep = s; }
-    void setParent(shared_ptr<Node> p) { parent = p; }
+    void setParent(shared_ptr<SearchNode<Domain>> p) { parent = p; }
+    void setBackupHHat(Cost val) { backupHHat = val; }
+    void setNancyFrontier(shared_ptr<SearchNode<Domain>> n)
+    {
+        nancyFrontier = n;
+    }
 
     bool onOpen() { return open; }
     void close() { open = false; }
@@ -63,6 +77,12 @@ public:
 
     void         incDelayCntr() { ++delayCntr; }
     unsigned int getDelayCntr() { return delayCntr; }
+
+    void resetStartEpsilons()
+    {
+        startEpsilonD = curEpsilonD;
+        startEpsilonH = curEpsilonH;
+    }
 
     void pushPathBasedEpsilons(double epsH_, double epsD_)
     {
@@ -76,7 +96,7 @@ public:
     void pushEpsilonHPathBased(double eps)
     {
         if (expansionCounter < 5) {
-            curEpsilonH = 0;
+            curEpsilonH = startEpsilonH;
             return;
         }
 
@@ -87,7 +107,7 @@ public:
     void pushEpsilonDPathBased(double eps)
     {
         if (expansionCounter < 5) {
-            curEpsilonD = 0;
+            curEpsilonH = startEpsilonH;
             return;
         }
 
@@ -95,14 +115,15 @@ public:
         curEpsilonD += eps / expansionCounter;
     }
 
-    Node(Cost g_, Cost h_, Cost d_, Cost derr_, Cost epsH_, Cost epsD_,
-         unsigned int expansionCounter_, State state_, shared_ptr<Node> parent_)
+    SearchNode<Domain>(Cost g_, Cost h_, Cost d_, Cost derr_, Cost epsH_,
+                       Cost epsD_, unsigned int expansionCounter_, State state_,
+                       shared_ptr<SearchNode<Domain>> parent_)
         : g(g_)
         , h(h_)
         , d(d_)
         , derr(derr_)
-        , curEpsilonH(epsH_)
-        , curEpsilonD(epsD_)
+        , startEpsilonH(epsH_)
+        , startEpsilonD(epsD_)
         , expansionCounter(expansionCounter_)
         , parent(parent_)
         , stateRep(state_)
@@ -111,7 +132,8 @@ public:
         delayCntr = 0;
     }
 
-    friend std::ostream& operator<<(std::ostream& stream, const Node& node)
+    friend std::ostream& operator<<(std::ostream&             stream,
+                                    const SearchNode<Domain>& node)
     {
         stream << node.getState() << endl;
         stream << "f: " << node.getFValue() << endl;
@@ -119,8 +141,8 @@ public:
         stream << "h: " << node.getHValue() << endl;
         stream << "derr: " << node.getDErrValue() << endl;
         stream << "d: " << node.getDValue() << endl;
-        stream << "epsilon-h: " << node.getEpsilonH() << endl;
-        stream << "epsilon-d: " << node.getEpsilonD() << endl;
+        stream << "epsilon-h: " << node.getPathBasedEpsilonH() << endl;
+        stream << "epsilon-d: " << node.getPathBasedEpsilonD() << endl;
         stream << "f-hat: " << node.getFHatValue() << endl;
         stream << "d-hat: " << node.getDHatValue() << endl;
         stream << "h-hat: " << node.getHHatValue() << endl;
@@ -130,8 +152,8 @@ public:
         return stream;
     }
 
-    static bool compareNodesF(const shared_ptr<Node> n1,
-                              const shared_ptr<Node> n2)
+    static bool compareNodesF(const shared_ptr<SearchNode<Domain>> n1,
+                              const shared_ptr<SearchNode<Domain>> n2)
     {
         // Tie break on g-value
         if (n1->getFValue() == n2->getFValue()) {
@@ -140,8 +162,8 @@ public:
         return n1->getFValue() < n2->getFValue();
     }
 
-    static bool compareNodesFHat(const shared_ptr<Node> n1,
-                                 const shared_ptr<Node> n2)
+    static bool compareNodesFHat(const shared_ptr<SearchNode<Domain>> n1,
+                                 const shared_ptr<SearchNode<Domain>> n2)
     {
         // Tie break on g-value
         if (n1->getFHatValue() == n2->getFHatValue()) {
@@ -156,8 +178,9 @@ public:
         return n1->getFHatValue() < n2->getFHatValue();
     }
 
-    static bool compareNodesFHatFromDist(const shared_ptr<Node> n1,
-                                         const shared_ptr<Node> n2)
+    static bool compareNodesFHatFromDist(
+      const shared_ptr<SearchNode<Domain>> n1,
+      const shared_ptr<SearchNode<Domain>> n2)
     {
         // Tie break on f-value then g-value
         if (n1->getFHatValueFromDist() == n2->getFHatValueFromDist()) {
@@ -172,8 +195,8 @@ public:
         return n1->getFHatValueFromDist() < n2->getFHatValueFromDist();
     }
 
-    static bool compareNodesH(const shared_ptr<Node> n1,
-                              const shared_ptr<Node> n2)
+    static bool compareNodesH(const shared_ptr<SearchNode<Domain>> n1,
+                              const shared_ptr<SearchNode<Domain>> n2)
     {
         if (n1->getHValue() == n2->getHValue()) {
             return n1->getGValue() > n2->getGValue();
@@ -181,8 +204,8 @@ public:
         return n1->getHValue() < n2->getHValue();
     }
 
-    static bool compareNodesHHat(const shared_ptr<Node> n1,
-                                 const shared_ptr<Node> n2)
+    static bool compareNodesHHat(const shared_ptr<SearchNode<Domain>> n1,
+                                 const shared_ptr<SearchNode<Domain>> n2)
     {
         if (n1->getHHatValue() == n2->getHHatValue()) {
             return n1->getGValue() > n2->getGValue();
@@ -190,8 +213,8 @@ public:
         return n1->getHHatValue() < n2->getHHatValue();
     }
 
-    static bool compareNodesBackedHHat(const shared_ptr<Node> n1,
-                                       const shared_ptr<Node> n2)
+    static bool compareNodesBackedHHat(const shared_ptr<SearchNode<Domain>> n1,
+                                       const shared_ptr<SearchNode<Domain>> n2)
     {
         /*if (n1->backupHHat == n2->backupHHat) {*/
         // return n1->getGValue() > n2->getGValue();
@@ -199,7 +222,7 @@ public:
         return n1->backupHHat < n2->backupHHat;
     }
 
-    static double getLowerConfidence(const shared_ptr<Node> n)
+    static double getLowerConfidence(const shared_ptr<SearchNode<Domain>> n)
     {
         double f    = n->getFValue();
         double mean = n->getFHatValue();
@@ -213,8 +236,8 @@ public:
         return max(f, mean - (1.96 * var));
     }
 
-    static bool compareNodesLC(const shared_ptr<Node> n1,
-                               const shared_ptr<Node> n2)
+    static bool compareNodesLC(const shared_ptr<SearchNode<Domain>> n1,
+                               const shared_ptr<SearchNode<Domain>> n2)
     {
         // Lower confidence interval
         if (getLowerConfidence(n1) == getLowerConfidence(n2)) {

@@ -20,8 +20,8 @@ public:
     {}
 
     stack<shared_ptr<Node>> backup(
-      PriorityQueue<shared_ptr<Node>>& open, shared_ptr<Node> start,
-      unordered_map<State, shared_ptr<Node>, Hash>&, const string&)
+      const PriorityQueue<shared_ptr<Node>>& open, shared_ptr<Node> start,
+      const unordered_map<State, shared_ptr<Node>, Hash>&, const bool)
     {
         stack<shared_ptr<Node>> commitedNodes;
         shared_ptr<Node>        goalPrime = open.top();

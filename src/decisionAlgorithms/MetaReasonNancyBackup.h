@@ -8,7 +8,6 @@
 using namespace std;
 
 template<class Domain, class Node>
-// class ScalarBackup
 class MetaReasonNancyBackup : public DecisionAlgorithm<Domain, Node>
 {
     typedef typename Domain::State     State;
@@ -26,7 +25,7 @@ public:
     stack<shared_ptr<Node>> backup(
       const PriorityQueue<shared_ptr<Node>>& open, shared_ptr<Node> start,
       const unordered_map<State, shared_ptr<Node>, Hash>& closed_,
-      bool                                                isForceCommit)
+      const bool                                          isForceCommit)
     {
         dijkstraNancyBackup(open, closed_);
         stack<shared_ptr<Node>> commitedNodes;
@@ -34,7 +33,7 @@ public:
         prefixDeepThinking(start, commitedNodes);
 
         if (commitedNodes.empty() && isForceCommit) {
-            commitedNodes.push_back(getAlpha(start));
+            commitedNodes.push(getAlpha(start));
         }
 
         return commitedNodes;
@@ -47,13 +46,13 @@ protected:
     {
         // Start by initializing every state in closed to inf hhat
         for (auto it = closedCopy.begin(); it != closedCopy.end(); it++) {
-            it->second->backupHHat = numeric_limits<double>::infinity();
+            it->second->setBackupHHat(numeric_limits<double>::infinity());
         }
 
         // initialiizing every node on open to its hhat
         for (auto node : open) {
-            node->backupHHat    = node->getHHatValue();
-            node->nancyFrontier = node;
+            node->setBackupHHat(node->getHHatValue());
+            node->setNancyFrontier(node);
         }
 
         // Order open by hhat
@@ -76,12 +75,13 @@ protected:
                 auto parentNode = it->second;
                 auto edgeCost   = domain.getEdgeCost(cur->getState());
 
-                if (parentNode->backupHHat <= edgeCost + cur->backupHHat) {
+                if (parentNode->getBackupHHatValue() <=
+                    edgeCost + cur->getBackupHHatValue()) {
                     continue;
                 }
 
-                parentNode->backupHHat    = edgeCost + cur->backupHHat;
-                parentNode->nancyFrontier = cur->nancyFrontier;
+                parentNode->setBackupHHat(edgeCost + cur->getBackupHHatValue());
+                parentNode->setNancyFrontier(cur->getNancyFrontier());
 
                 if (open.find(parentNode) == open.end()) {
                     open.push(parentNode);
@@ -92,19 +92,25 @@ protected:
         }
     }
 
-    void prefixDeepThinking(shared_ptr<Node>          start,
-                            vector<shared_ptr<Node>>& commitedNodes)
+    void prefixDeepThinking(shared_ptr<Node>         start,
+                            stack<shared_ptr<Node>>& commitedNodes)
     {
         auto cur = start;
         int  t   = 0;
 
+        stack<shared_ptr<Node>> reverseOrderedCommitedNodes;
         while (isCommit(cur, t)) {
-            commitedNodes.push_back(cur);
+            reverseOrderedCommitedNodes.push(cur);
             cur = getAlpha(start);
             if (!cur) {
                 break;
             }
             t += 1;
+        }
+
+        while (!reverseOrderedCommitedNodes.empty()) {
+            commitedNodes.push(reverseOrderedCommitedNodes.top());
+            reverseOrderedCommitedNodes.pop();
         }
     }
 
@@ -178,15 +184,15 @@ protected:
                 continue;
             }
 
-            if (it->second->parent != node) {
+            if (it->second->getParent() != node) {
                 continue;
             }
 
             auto childNode = it->second;
 
-            if (childNode->nancyFrontier->getFHatValue() < bestFHat) {
+            if (childNode->getNancyFrontier()->getFHatValue() < bestFHat) {
                 bestChild = childNode;
-                bestFHat  = childNode->nancyFrontier->getFHatValue();
+                bestFHat  = childNode->getNancyFrontier()->getFHatValue();
             }
         }
 
@@ -209,16 +215,16 @@ protected:
                 continue;
             }
 
-            if (it->second->parent != node) {
+            if (it->second->getParent() != node) {
                 continue;
             }
 
             auto childNode = it->second;
 
-            if (childNode->nancyFrontier->getFHatValue() < bestFHat) {
+            if (childNode->getNancyFrontier()->getFHatValue() < bestFHat) {
                 secondBestChild = bestChild;
                 bestChild       = childNode;
-                bestFHat        = childNode->nancyFrontier->getFHatValue();
+                bestFHat        = childNode->getNancyFrontier()->getFHatValue();
             }
         }
 
@@ -228,20 +234,21 @@ protected:
     DiscreteDistribution distributionAfterSearch(shared_ptr<Node> node,
                                                  double timeStepFraction)
     {
-        auto mean = node->nancyFrontier->getFHatValue();
-        //Just use global delay
-        // version 2 try path based expansion delay? 
+        auto mean = node->getNancyFrontier()->getFHatValue();
+        // Just use global delay
+        // version 2 try path based expansion delay?
         double ds =
           // for identity action
-          timeStepFraction * lookahead / domain.averageDelayWindow();
+          timeStepFraction * static_cast<double>(lookahead) /
+          domain.averageDelayWindow();
         // for Slo'RTS
         // node->getDValue();
 
         // we are using path-based heuristic error here
-        auto var = pow(node->nancyFrontier->getPathBasedEpsilonH() *
-                         node->nancyFrontier->getDValue(),
+        auto var = pow(node->getNancyFrontier()->getPathBasedEpsilonH() *
+                         node->getNancyFrontier()->getDValue(),
                        2.0) *
-                   (1 - min(1, ds / node->nancyFrontier->getDValue()));
+                   (1.0 - min(1.0, ds / node->getNancyFrontier()->getDValue()));
         DiscreteDistribution dist(100, mean, var);
         return dist;
     }

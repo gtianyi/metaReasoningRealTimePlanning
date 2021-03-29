@@ -1,7 +1,7 @@
 #pragma once
 //#include "decisionAlgorithms/DecisionAlgorithm.h"
-#include "decisionAlgorithms/MetaReasonScalarBackup.h"
 #include "decisionAlgorithms/MetaReasonNancyBackup.h"
+#include "decisionAlgorithms/MetaReasonScalarBackup.h"
 #include "expansionAlgorithms/MetaReasonAStar.h"
 #include "learningAlgorithms/MetaReasonDijkstra.h"
 #include "node.h"
@@ -27,7 +27,7 @@ public:
     typedef typename Domain::State     State;
     typedef typename Domain::Cost      Cost;
     typedef typename Domain::HashState Hash;
-    using Node = Node<Domain>;
+    using Node = SearchNode<Domain>;
 
     RealTimeSearch(Domain& domain_, string decisionModule_, size_t lookahead_)
         : domain(domain_)
@@ -120,8 +120,6 @@ public:
             }
 
             restartLists(start);
-
-            domain.updateEpsilons();
 
             // Expansion and Decision-making Phase
             // check how many of the prefix should be commit
@@ -216,8 +214,8 @@ private:
                     it->second->setHValue(node->getHValue());
                     it->second->setDValue(node->getDValue());
                     it->second->setDErrValue(node->getDErrValue());
-                    it->second->setEpsilonH(node->getEpsilonH());
-                    it->second->setEpsilonD(node->getEpsilonD());
+                    it->second->setEpsilonH(node->getPathBasedEpsilonH());
+                    it->second->setEpsilonD(node->getPathBasedEpsilonD());
                     it->second->setState(node->getState());
                     open.update(it->second);
                 }
@@ -231,8 +229,8 @@ private:
                     it->second->setHValue(node->getHValue());
                     it->second->setDValue(node->getDValue());
                     it->second->setDErrValue(node->getDErrValue());
-                    it->second->setEpsilonH(node->getEpsilonH());
-                    it->second->setEpsilonD(node->getEpsilonD());
+                    it->second->setEpsilonH(node->getPathBasedEpsilonH());
+                    it->second->setEpsilonD(node->getPathBasedEpsilonD());
                     it->second->setState(node->getState());
                     it->second->reOpen();
                     open.push(it->second);
@@ -250,6 +248,7 @@ private:
         // mark this node as the start of the current search (to
         // prevent state pruning based on label)
         start->markStart();
+        start->resetStartEpsilons();
 
         // Empty OPEN and CLOSED
         open.clear();
