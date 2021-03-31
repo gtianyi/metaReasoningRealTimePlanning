@@ -200,7 +200,7 @@ public:
         }
 
         // Create a Discrete Distribution from a gaussian
-        double lower = 0;
+        double lower = max(0.0, mean - 3 * sqrt(var_));
         double upper = mean + 3 * sqrt(var_);
 
         double sampleStepSize =
