@@ -1,9 +1,12 @@
 #pragma once
 #include "../utility/DiscreteDistribution.h"
 #include "../utility/PriorityQueue.h"
+#include "../utility/debug.h"
 #include "DecisionAlgorithm.h"
+#include <cassert>
 #include <functional>
 #include <memory>
+#include <sstream>
 
 using namespace std;
 
@@ -92,6 +95,22 @@ protected:
         }
     }
 
+    void DebugPrint(shared_ptr<Node> cur, int t)
+    {
+        string debugStr = "";
+
+        std::stringstream ss;
+        ss << cur;
+        debugStr += "{reasoning node: " + ss.str() + ",";
+        ss << getAlpha(cur);
+        debugStr += "alpha: " + ss.str() + ",";
+        ss << getBeta(cur);
+        debugStr += "beta: " + ss.str() + ",";
+        debugStr += "t: " + to_string(t) + "}";
+
+        DEBUG_MSG(debugStr);
+    }
+
     void prefixDeepThinking(shared_ptr<Node>         start,
                             stack<shared_ptr<Node>>& commitedNodes)
     {
@@ -99,7 +118,11 @@ protected:
         int  t   = 0;
 
         stack<shared_ptr<Node>> reverseOrderedCommitedNodes;
+
+        DebugPrint(cur, t);
+
         while (isCommit(cur, t)) {
+            DebugPrint(cur, t);
             reverseOrderedCommitedNodes.push(cur);
             cur = getAlpha(start);
             if (!cur) {
@@ -119,6 +142,20 @@ protected:
         auto alpha = getAlpha(node);
         auto beta  = getBeta(node);
 
+        if (alpha == nullptr && beta == nullptr) {
+            // this is the frontier, so not commit
+            // we need grandchilden info to make meta decision
+            // so we always choose to not commit the very most frontier
+            // that has no children generated yet.
+            // lookahead has to be at least 2,
+            // otherwise it will always choose to not commit
+            return false;
+        }
+
+        if (beta == nullptr) {
+            return true;
+        }
+
         auto utilityOfCommit    = commitUtility(alpha, timeStep);
         auto utilityOfNotCommit = notCommitUtility(alpha, beta, timeStep);
 
@@ -129,6 +166,14 @@ protected:
     {
         auto alphaalpha = getAlpha(alpha);
         auto alphabeta  = getBeta(alpha);
+
+        if (alphaalpha == nullptr && alphabeta == nullptr) {
+            return alpha->getNancyFrontier()->getFHatValue();
+        }
+
+        if (alphabeta == nullptr) {
+            return alphaalpha->getNancyFrontier()->getFHatValue();
+        }
 
         auto pAlphaalpha =
           distributionAfterSearch(alphaalpha, (timeStep + 1) / 2.0);
@@ -146,19 +191,27 @@ protected:
         auto betaalpha  = getAlpha(beta);
         auto betabeta   = getBeta(beta);
 
-        auto pAlphaalpha =
-          distributionAfterSearch(alphaalpha, (timeStep / 2.0 + 1) / 2.0);
-        auto pAlphabeta =
-          distributionAfterSearch(alphabeta, (timeStep / 2.0 + 1) / 2.0);
+        double utilityOfAlpha = alpha->getNancyFrontier()->getFHatValue();
 
-        auto utilityOfAlpha = expectedMinimum(pAlphaalpha, pAlphabeta);
+        if (alphaalpha != nullptr && alphabeta != nullptr) {
+            auto pAlphaalpha =
+              distributionAfterSearch(alphaalpha, (timeStep / 2.0 + 1) / 2.0);
+            auto pAlphabeta =
+              distributionAfterSearch(alphabeta, (timeStep / 2.0 + 1) / 2.0);
 
-        auto pBetaalpha =
-          distributionAfterSearch(betaalpha, (timeStep / 2.0 + 1) / 2.0);
-        auto pBetabeta =
-          distributionAfterSearch(betabeta, (timeStep / 2.0 + 1) / 2.0);
+            utilityOfAlpha = expectedMinimum(pAlphaalpha, pAlphabeta);
+        }
 
-        auto utilityOfBeta = expectedMinimum(pBetaalpha, pBetabeta);
+        auto utilityOfBeta = beta->getNancyFrontier()->getFHatValue();
+
+        if (betaalpha != nullptr && betabeta != nullptr) {
+            auto pBetaalpha =
+              distributionAfterSearch(betaalpha, (timeStep / 2.0 + 1) / 2.0);
+            auto pBetabeta =
+              distributionAfterSearch(betabeta, (timeStep / 2.0 + 1) / 2.0);
+
+            utilityOfBeta = expectedMinimum(pBetaalpha, pBetabeta);
+        }
 
         auto pAlpha = distributionAfterSearch(alpha, timeStep / 2.0);
         auto pBeta  = distributionAfterSearch(beta, timeStep / 2.0);
@@ -196,6 +249,11 @@ protected:
             }
         }
 
+        if (bestChild != nullptr) {
+            DEBUG_MSG("find alpha");
+            assert(bestChild != node);
+        }
+
         return bestChild;
     }
 
@@ -204,9 +262,9 @@ protected:
     {
         vector<State> children = domain.successors(node->getState());
 
-        shared_ptr<Node> bestChild;
+        shared_ptr<Node> bestChild = getAlpha(node);
         shared_ptr<Node> secondBestChild;
-        Cost             bestFHat = numeric_limits<double>::infinity();
+        Cost             secondBestFHat = numeric_limits<double>::infinity();
 
         for (State child : children) {
             auto it = closed.find(child);
@@ -221,11 +279,18 @@ protected:
 
             auto childNode = it->second;
 
-            if (childNode->getNancyFrontier()->getFHatValue() < bestFHat) {
-                secondBestChild = bestChild;
-                bestChild       = childNode;
-                bestFHat        = childNode->getNancyFrontier()->getFHatValue();
+            if (childNode->getNancyFrontier()->getFHatValue() <
+                  secondBestFHat &&
+                childNode != bestChild) {
+                secondBestChild = childNode;
+                secondBestFHat  = childNode->getNancyFrontier()->getFHatValue();
             }
+        }
+
+        if (secondBestChild != nullptr) {
+            DEBUG_MSG("find beta");
+            assert(secondBestChild != node);
+            assert(secondBestChild != bestChild);
         }
 
         return secondBestChild;

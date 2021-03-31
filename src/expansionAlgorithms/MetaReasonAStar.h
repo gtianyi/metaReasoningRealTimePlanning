@@ -1,11 +1,11 @@
 #pragma once
 #include "../utility/PriorityQueue.h"
 #include "../utility/ResultContainer.h"
+#include "../utility/debug.h"
 #include <functional>
 #include <memory>
 #include <unordered_map>
 
-#include "../utility/debug.h"
 
 using namespace std;
 
