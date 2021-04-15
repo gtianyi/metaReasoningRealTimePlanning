@@ -6,7 +6,6 @@
 #include <memory>
 #include <unordered_map>
 
-
 using namespace std;
 
 template<class Domain, class Node>
@@ -47,7 +46,8 @@ public:
             shared_ptr<Node> cur = open.top();
 
             string debugStr = "";
-            debugStr += "{g: " + to_string(cur->getGValue()) + ",";
+            debugStr += "{state: \'" + cur->getState().toString() + "\',";
+            debugStr += "g: " + to_string(cur->getGValue()) + ",";
             debugStr += "h: " + to_string(cur->getHValue()) + ",";
             debugStr += "f: " + to_string(cur->getFValue()) + ",";
             debugStr += "expansion: " + to_string(expansions) + "}";

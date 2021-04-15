@@ -149,6 +149,7 @@ public:
                   metaReasonDecisionAlgo->backup(open, start, closed, false);
 
                 DEBUG_MSG("commit size: " << commitQueue.size());
+                DEBUG_MSG("actionQ size: " << actionQueue.size());
 
                 auto n = actionQueue.front();
                 actionQueue.pop();
@@ -170,9 +171,22 @@ public:
             // if action queue is empty and metareasoning do not want to commit
             // force to commit at least one action
             if (commitQueue.empty()) {
+                DEBUG_MSG("start, ");
+
+                //string debugStr = "";
+                //debugStr += "{g: " + to_string(start->getGValue()) + ",";
+                //debugStr += "h: " + to_string(start->getHValue()) + ",";
+                //debugStr += "f: " + to_string(start->getFValue()) + ",";
+                //debugStr += "state : " + start->getState().toString() + "}";
+
+                //DEBUG_MSG(debugStr);
+
                 // force to commit at least one action
                 commitQueue =
                   metaReasonDecisionAlgo->backup(open, start, closed, true);
+
+                DEBUG_MSG("force commit, commit queue size "
+                          << commitQueue.size());
             }
 
             assert(commitQueue.size() > 0);

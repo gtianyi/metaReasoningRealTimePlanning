@@ -36,7 +36,13 @@ public:
         prefixDeepThinking(start, commitedNodes);
 
         if (commitedNodes.empty() && isForceCommit) {
-            commitedNodes.push(getAlpha(start));
+            DEBUG_MSG("force commit");
+            auto alpha = getAlpha(start);
+            if (alpha == nullptr) {
+                DEBUG_MSG("alpha is null");
+                return commitedNodes;
+            }
+            commitedNodes.push(alpha);
         }
 
         return commitedNodes;
@@ -122,13 +128,13 @@ protected:
         DebugPrint(cur, t);
 
         while (isCommit(cur, t)) {
-            DebugPrint(cur, t);
             reverseOrderedCommitedNodes.push(cur);
-            cur = getAlpha(start);
-            if (!cur) {
+            cur = getAlpha(cur);
+            if (cur == nullptr) {
                 break;
             }
             t += 1;
+            DebugPrint(cur, t);
         }
 
         while (!reverseOrderedCommitedNodes.empty()) {
@@ -156,10 +162,28 @@ protected:
             return true;
         }
 
-        auto utilityOfCommit    = commitUtility(alpha, timeStep);
-        auto utilityOfNotCommit = notCommitUtility(alpha, beta, timeStep);
+        auto pChooseAlpha = getPChooseAlpha(alpha, beta, timeStep);
 
+        if (pChooseAlpha == 1.0) {
+            return true;
+        }
+
+        auto utilityOfCommit = commitUtility(alpha, timeStep);
+        auto utilityOfNotCommit =
+          notCommitUtility(alpha, beta, pChooseAlpha, timeStep);
+
+        DEBUG_MSG("uCMT " + to_string(utilityOfCommit) + " uNCMT " +
+                  to_string(utilityOfNotCommit));
         return utilityOfCommit > utilityOfNotCommit;
+    }
+
+    double getPChooseAlpha(shared_ptr<Node> alpha, shared_ptr<Node> beta,
+                           int timeStep)
+    {
+        auto pAlpha = distributionAfterSearch(alpha, timeStep / 2.0);
+        auto pBeta  = distributionAfterSearch(beta, timeStep / 2.0);
+
+        return pChoose(pAlpha, pBeta);
     }
 
     Cost commitUtility(shared_ptr<Node> alpha, int timeStep)
@@ -168,10 +192,12 @@ protected:
         auto alphabeta  = getBeta(alpha);
 
         if (alphaalpha == nullptr && alphabeta == nullptr) {
+            DEBUG_MSG("no kid for alpha");
             return alpha->getNancyFrontier()->getFHatValue();
         }
 
         if (alphabeta == nullptr) {
+            DEBUG_MSG("no kid for beta");
             return alphaalpha->getNancyFrontier()->getFHatValue();
         }
 
@@ -184,7 +210,7 @@ protected:
     }
 
     Cost notCommitUtility(shared_ptr<Node> alpha, shared_ptr<Node> beta,
-                          int timeStep)
+                          double pChooseAlpha, int timeStep)
     {
         auto alphaalpha = getAlpha(alpha);
         auto alphabeta  = getBeta(alpha);
@@ -194,6 +220,7 @@ protected:
         double utilityOfAlpha = alpha->getNancyFrontier()->getFHatValue();
 
         if (alphaalpha != nullptr && alphabeta != nullptr) {
+            DEBUG_MSG("has both kids for alpha, in nCMT");
             auto pAlphaalpha =
               distributionAfterSearch(alphaalpha, (timeStep / 2.0 + 1) / 2.0);
             auto pAlphabeta =
@@ -205,6 +232,7 @@ protected:
         auto utilityOfBeta = beta->getNancyFrontier()->getFHatValue();
 
         if (betaalpha != nullptr && betabeta != nullptr) {
+            DEBUG_MSG("has both kids for beta, in nCMT");
             auto pBetaalpha =
               distributionAfterSearch(betaalpha, (timeStep / 2.0 + 1) / 2.0);
             auto pBetabeta =
@@ -213,44 +241,55 @@ protected:
             utilityOfBeta = expectedMinimum(pBetaalpha, pBetabeta);
         }
 
-        auto pAlpha = distributionAfterSearch(alpha, timeStep / 2.0);
-        auto pBeta  = distributionAfterSearch(beta, timeStep / 2.0);
+        DEBUG_MSG("uA " + to_string(utilityOfAlpha));
+        DEBUG_MSG("uB " + to_string(utilityOfBeta));
+        DEBUG_MSG("pChooseAlpha " + to_string(pChooseAlpha));
 
-        auto pChooseAlpah = pChoose(pAlpha, pBeta);
-
-        return pChooseAlpah * utilityOfAlpha +
-               (1 - pChooseAlpah) * utilityOfBeta;
+        return pChooseAlpha * utilityOfAlpha +
+               (1 - pChooseAlpha) * utilityOfBeta;
     }
 
     shared_ptr<Node> getAlpha(shared_ptr<Node> node)
     {
-
         vector<State> children = domain.successors(node->getState());
 
         shared_ptr<Node> bestChild;
         Cost             bestFHat = numeric_limits<double>::infinity();
 
         for (State child : children) {
+            // DEBUG_MSG("child, " + child.toString());
             auto it = closed.find(child);
 
             if (it == closed.end()) {
+                // DEBUG_MSG("not in closed");
                 continue;
             }
 
             if (it->second->getParent() != node) {
+                // DEBUG_MSG("not parent's kid");
                 continue;
             }
 
             auto childNode = it->second;
 
+            // DEBUG_MSG("bestFHat " + to_string(bestFHat));
+            // DEBUG_MSG("childNode " + childNode->toString());
+            // DEBUG_MSG("childNodeNancyFront " +
+            // childNode->getNancyFrontier()->toString());
+            // DEBUG_MSG("childNancyFrontier " +
+            // childNode->getNancyFrontier()->getState().toString());
+            // DEBUG_MSG("childFhat " +
+            // to_string(childNode->getNancyFrontier()->getFHatValue()));
             if (childNode->getNancyFrontier()->getFHatValue() < bestFHat) {
+
+                // DEBUG_MSG("update bestchild");
                 bestChild = childNode;
                 bestFHat  = childNode->getNancyFrontier()->getFHatValue();
             }
         }
 
         if (bestChild != nullptr) {
-            DEBUG_MSG("find alpha");
+            // DEBUG_MSG("find alpha");
             assert(bestChild != node);
         }
 
@@ -288,7 +327,7 @@ protected:
         }
 
         if (secondBestChild != nullptr) {
-            DEBUG_MSG("find beta");
+            // DEBUG_MSG("find beta");
             assert(secondBestChild != node);
             assert(secondBestChild != bestChild);
         }
@@ -313,7 +352,13 @@ protected:
         auto var = pow(node->getNancyFrontier()->getPathBasedEpsilonH() *
                          node->getNancyFrontier()->getDValue(),
                        2.0) *
-                   (1.0 - min(1.0, ds / node->getNancyFrontier()->getDValue()));
+                   min(1.0, ds / node->getNancyFrontier()->getDValue());
+
+        DEBUG_MSG("epsilonh " +
+                  to_string(node->getNancyFrontier()->getPathBasedEpsilonH()));
+        DEBUG_MSG("ds " + to_string(ds));
+        DEBUG_MSG("dab " + to_string(node->getNancyFrontier()->getDValue()));
+        DEBUG_MSG("mean " + to_string(mean) + " var " + to_string(var));
         DiscreteDistribution dist(100, mean, var);
         return dist;
     }
@@ -328,6 +373,8 @@ protected:
                          binAlpah.probability * binBeta.probability;
             }
         }
+
+        DEBUG_MSG("exp min: " + to_string(expMin));
 
         return expMin;
     }
