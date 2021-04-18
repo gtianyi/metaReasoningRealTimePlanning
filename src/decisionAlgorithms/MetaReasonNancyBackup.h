@@ -343,11 +343,11 @@ protected:
                        2.0) *
                    min(1.0, ds / node->getNancyFrontier()->getDValue());
 
-        DEBUG_MSG("epsilonh " +
-                  to_string(node->getNancyFrontier()->getPathBasedEpsilonH()));
-        DEBUG_MSG("ds " + to_string(ds));
-        DEBUG_MSG("dab " + to_string(node->getNancyFrontier()->getDValue()));
-        DEBUG_MSG("mean " + to_string(mean) + " var " + to_string(var));
+        //DEBUG_MSG("epsilonh " +
+                  //to_string(node->getNancyFrontier()->getPathBasedEpsilonH()));
+        //DEBUG_MSG("ds " + to_string(ds));
+        //DEBUG_MSG("dab " + to_string(node->getNancyFrontier()->getDValue()));
+        //DEBUG_MSG("mean " + to_string(mean) + " var " + to_string(var));
         DiscreteDistribution dist(100, mean, var);
         return dist;
     }

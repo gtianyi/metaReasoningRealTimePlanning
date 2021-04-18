@@ -41,9 +41,10 @@ nlohmann::json parseVisResult(const ResultContainer& res)
 
     nlohmann::json record;
 
-    record["path"]     = res.paths;
-    record["visited"] =  res.visited;
-    
+    record["path"]           = res.paths;
+    record["visited"]        = res.visited;
+    record["isKeepThinking"] = res.isKeepThinkingFlags;
+
     return record;
 }
 

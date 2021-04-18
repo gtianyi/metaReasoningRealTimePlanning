@@ -104,8 +104,8 @@ public:
             return;
         }
 
-        DEBUG_MSG("epsh " + to_string(eps));
-        DEBUG_MSG("expCounter " + to_string(expansionCounter));
+        //DEBUG_MSG("epsh " + to_string(eps));
+        //DEBUG_MSG("expCounter " + to_string(expansionCounter));
 
         curEpsilonH -= curEpsilonH / expansionCounter;
         curEpsilonH += eps / expansionCounter;

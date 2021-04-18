@@ -71,11 +71,14 @@ public:
 
         queue<shared_ptr<Node>> actionQueue;
         actionQueue.push(initNode);
-
+        shared_ptr<Node> start = initNode;
         // if set a cutoff iteration
         // while (count <= iterationlimit) {
         while (1) {
-            auto start = actionQueue.front();
+
+            if (decisionModule == "one") {
+                start = actionQueue.front();
+            }
 
             if (decisionModule == "alltheway") {
                 vector<string> curPath;
@@ -108,15 +111,35 @@ public:
             }
 
             // Check if a goal has been reached
+            // if yes, just clear the action queue
             if (domain.isGoal(start->getState())) {
                 res.solutionFound = true;
-                // vector<string> curPath;
-                // curPath.push_back(start->getState().toString());
-                // res.paths.push_back(curPath);
+                // We stop thinking for metareason approach
+                // once the thinking frontier reach a goal
+                // ps: this loop should happen only once for one commit
+                while (actionQueue.size() > 0) {
+                    auto curAction = actionQueue.front();
+                    actionQueue.pop();
+                    vector<string> curPath;
+                    curPath.push_back(curAction->getState().toString());
+                    res.paths.push_back(curPath);
+                    vector<string> curVisitied;
+                    res.visited.push_back(curVisitied);
+                    res.isKeepThinkingFlags.push_back(false);
+                    // TODO cost can not be computed here
+                    // res.solutionCost += n->getGValue();
+                    res.solutionLength += 1;
 
-                res.solutionLength += 1;
+                    // lsslrta* try to optimize cpu time,
+                    // so even if more than one action are commited, it
+                    // will not use the time to thinking,
+                    // so we have to directly advance the "time"
+                    res.GATnodesExpanded += lookahead;
 
-                return res;
+                    if (domain.isGoal(curAction->getState())) {
+                        return res;
+                    }
+                }
             }
 
             restartLists(start);
@@ -135,7 +158,11 @@ public:
             // 4. our approach: compute benefit of doing more search
 
             // this loop should happen only once for approach 1-3
-            while (commitQueue.empty() && !actionQueue.empty()) {
+            int  continueCounter = 0;
+            bool keepThinking    = false;
+            bool goalReached     = false;
+            while (commitQueue.empty() && !actionQueue.empty() &&
+                   !goalReached) {
                 // do more search
                 metaReasonExpansionAlgo->expand(open, closed,
                                                 duplicateDetection, res);
@@ -144,10 +171,18 @@ public:
                     break;
                 }
 
+                if (domain.isGoal(open.top()->getState())) {
+                    metaReasonDecisionAlgo =
+                      make_shared<MetaReasonScalarBackup<Domain, Node>>(
+                        "alltheway");
+                    goalReached = true;
+                }
+
                 // meta-reason about how much to commit
                 commitQueue =
                   metaReasonDecisionAlgo->backup(open, start, closed, false);
 
+                DEBUG_MSG("continue search: " << continueCounter);
                 DEBUG_MSG("commit size: " << commitQueue.size());
                 DEBUG_MSG("actionQ size: " << actionQueue.size());
 
@@ -157,10 +192,13 @@ public:
                     vector<string> curPath;
                     curPath.push_back(n->getState().toString());
                     res.paths.push_back(curPath);
+                    res.isKeepThinkingFlags.push_back(keepThinking);
+                    keepThinking = true;
                 }
                 // TODO cost can not be computed here
                 // res.solutionCost += n->getGValue();
                 res.solutionLength += 1;
+                ++continueCounter;
             }
 
             // deadend
@@ -173,13 +211,13 @@ public:
             if (commitQueue.empty()) {
                 DEBUG_MSG("start, ");
 
-                //string debugStr = "";
-                //debugStr += "{g: " + to_string(start->getGValue()) + ",";
-                //debugStr += "h: " + to_string(start->getHValue()) + ",";
-                //debugStr += "f: " + to_string(start->getFValue()) + ",";
-                //debugStr += "state : " + start->getState().toString() + "}";
+                // string debugStr = "";
+                // debugStr += "{g: " + to_string(start->getGValue()) + ",";
+                // debugStr += "h: " + to_string(start->getHValue()) + ",";
+                // debugStr += "f: " + to_string(start->getFValue()) + ",";
+                // debugStr += "state : " + start->getState().toString() + "}";
 
-                //DEBUG_MSG(debugStr);
+                // DEBUG_MSG(debugStr);
 
                 // force to commit at least one action
                 commitQueue =
@@ -195,6 +233,7 @@ public:
                 auto n = commitQueue.top();
                 commitQueue.pop();
                 actionQueue.push(n);
+                start = n;
             }
 
             // LearninH Phase
