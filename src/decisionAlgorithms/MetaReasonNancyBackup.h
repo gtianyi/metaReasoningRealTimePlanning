@@ -101,22 +101,6 @@ protected:
         }
     }
 
-    void DebugPrint(shared_ptr<Node> cur, int t)
-    {
-        string debugStr = "";
-
-        std::stringstream ss;
-        ss << cur;
-        debugStr += "{reasoning node: " + ss.str() + ",";
-        ss << getAlpha(cur);
-        debugStr += "alpha: " + ss.str() + ",";
-        ss << getBeta(cur);
-        debugStr += "beta: " + ss.str() + ",";
-        debugStr += "t: " + to_string(t) + "}";
-
-        DEBUG_MSG(debugStr);
-    }
-
     void prefixDeepThinking(shared_ptr<Node>         start,
                             stack<shared_ptr<Node>>& commitedNodes)
     {
@@ -125,8 +109,6 @@ protected:
 
         stack<shared_ptr<Node>> reverseOrderedCommitedNodes;
 
-        DebugPrint(cur, t);
-
         while (isCommit(cur, t)) {
             reverseOrderedCommitedNodes.push(cur);
             cur = getAlpha(cur);
@@ -134,7 +116,6 @@ protected:
                 break;
             }
             t += 1;
-            DebugPrint(cur, t);
         }
 
         while (!reverseOrderedCommitedNodes.empty()) {
@@ -148,6 +129,8 @@ protected:
         auto alpha = getAlpha(node);
         auto beta  = getBeta(node);
 
+        DEBUG_MSG("meta reasoning========== timestep " + to_string(timeStep));
+        DEBUG_MSG("cur " + node->toString());
         if (alpha == nullptr && beta == nullptr) {
             // this is the frontier, so not commit
             // we need grandchilden info to make meta decision
@@ -155,16 +138,22 @@ protected:
             // that has no children generated yet.
             // lookahead has to be at least 2,
             // otherwise it will always choose to not commit
+            DEBUG_MSG("both a and b are null, return false ");
             return false;
         }
 
         if (beta == nullptr) {
+            DEBUG_MSG("b is null, return true");
             return true;
         }
+
+        DEBUG_MSG("alpha " + alpha->toString());
+        DEBUG_MSG("beta " + beta->toString());
 
         auto pChooseAlpha = getPChooseAlpha(alpha, beta, timeStep);
 
         if (pChooseAlpha == 1.0) {
+            DEBUG_MSG("p_a is 1, return true");
             return true;
         }
 
