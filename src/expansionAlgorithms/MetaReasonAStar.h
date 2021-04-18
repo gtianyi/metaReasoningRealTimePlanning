@@ -39,6 +39,7 @@ public:
         // actions
         size_t expansions = 1;
 
+        DEBUG_MSG("lookahead=================");
         // Expand until the limit
         vector<string> visited;
         while (!open.empty() && (expansions < lookahead)) {
@@ -47,9 +48,9 @@ public:
 
             string debugStr = "";
             debugStr += "{state: \'" + cur->getState().toString() + "\',";
-            debugStr += "g: " + to_string(cur->getGValue()) + ",";
-            debugStr += "h: " + to_string(cur->getHValue()) + ",";
-            debugStr += "f: " + to_string(cur->getFValue()) + ",";
+            debugStr += "g: " + my_to_string(cur->getGValue()) + ",";
+            debugStr += "h: " + my_to_string(cur->getHValue()) + ",";
+            debugStr += "f: " + my_to_string(cur->getFValue()) + ",";
             debugStr += "expansion: " + to_string(expansions) + "}";
 
             DEBUG_MSG(debugStr);

@@ -143,16 +143,16 @@ public:
     {
         string str = "";
         str += "{state: " + stateRep.toString() + ",";
-        str += "f: " + to_string(getFValue()) + ",";
-        str += "g: " + to_string(getGValue()) + ",";
-        str += "h: " + to_string(getHValue()) + ",";
-        str += "derr: " + to_string(getDErrValue()) + ",";
-        str += "d: " + to_string(getDValue()) + ",";
-        str += "epsilon-h: " + to_string(getPathBasedEpsilonH()) + ",";
-        str += "epsilon-d: " + to_string(getPathBasedEpsilonD()) + ",";
-        str += "f-hat: " + to_string(getFHatValue()) + ",";
-        str += "d-hat: " + to_string(getDHatValue()) + ",";
-        str += "h-hat: " + to_string(getHHatValue()) + "}";
+        str += "f: " + my_to_string(getFValue()) + ",";
+        str += "g: " + my_to_string(getGValue()) + ",";
+        str += "h: " + my_to_string(getHValue()) + ",";
+        str += "derr: " + my_to_string(getDErrValue()) + ",";
+        str += "d: " + my_to_string(getDValue()) + ",";
+        str += "epsilon-h: " + my_to_string(getPathBasedEpsilonH()) + ",";
+        str += "epsilon-d: " + my_to_string(getPathBasedEpsilonD()) + ",";
+        str += "f-hat: " + my_to_string(getFHatValue()) + ",";
+        str += "d-hat: " + my_to_string(getDHatValue()) + ",";
+        str += "h-hat: " + my_to_string(getHHatValue()) + "}";
         return str;
     }
 
