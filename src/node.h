@@ -104,8 +104,8 @@ public:
             return;
         }
 
-        //DEBUG_MSG("epsh " + to_string(eps));
-        //DEBUG_MSG("expCounter " + to_string(expansionCounter));
+        // DEBUG_MSG("epsh " + to_string(eps));
+        // DEBUG_MSG("expCounter " + to_string(expansionCounter));
 
         curEpsilonH -= curEpsilonH / expansionCounter;
         curEpsilonH += eps / expansionCounter;
@@ -114,7 +114,7 @@ public:
     void pushEpsilonDPathBased(double eps)
     {
         if (expansionCounter < 5) {
-            curEpsilonH = startEpsilonH;
+            curEpsilonD = startEpsilonD;
             return;
         }
 
@@ -131,6 +131,8 @@ public:
         , derr(derr_)
         , startEpsilonH(epsH_)
         , startEpsilonD(epsD_)
+        , curEpsilonH(epsH_)
+        , curEpsilonD(epsD_)
         , expansionCounter(expansionCounter_)
         , parent(parent_)
         , stateRep(state_)
@@ -153,6 +155,12 @@ public:
         str += "f-hat: " + my_to_string(getFHatValue()) + ",";
         str += "d-hat: " + my_to_string(getDHatValue()) + ",";
         str += "h-hat: " + my_to_string(getHHatValue()) + "}";
+        str += "backed h-hat: " + my_to_string(getBackupHHatValue()) + ",";
+        if (getParent() == nullptr) {
+            str += "parent: null }";
+        } else {
+            str += "parent: " + getParent()->getState().toString() + "}";
+        }
         return str;
     }
 

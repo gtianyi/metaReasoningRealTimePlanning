@@ -51,6 +51,13 @@ public:
             debugStr += "g: " + my_to_string(cur->getGValue()) + ",";
             debugStr += "h: " + my_to_string(cur->getHValue()) + ",";
             debugStr += "f: " + my_to_string(cur->getFValue()) + ",";
+            debugStr +=
+              "epsH: " + my_to_string(cur->getPathBasedEpsilonH()) + ",";
+            debugStr +=
+              "epsD: " + my_to_string(cur->getPathBasedEpsilonD()) + ",";
+            debugStr +=
+              "epsCounter: " + to_string(cur->getPathBasedExpansionCounter()) +
+              ",";
             debugStr += "expansion: " + to_string(expansions) + "}";
 
             DEBUG_MSG(debugStr);

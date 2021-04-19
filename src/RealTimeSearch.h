@@ -262,8 +262,7 @@ private:
       PriorityQueue<shared_ptr<Node>>&              open)
     {
         // Check if this state exists
-        typename unordered_map<State, shared_ptr<Node>, Hash>::iterator it =
-          closed.find(node->getState());
+        auto it = closed.find(node->getState());
 
         if (it != closed.end()) {
             // This state has been generated before, check if its node is on
@@ -324,6 +323,7 @@ private:
         start->setParent(nullptr);
 
         open.push(start);
+        closed[start->getState()] = start;
     }
 
     void clean()

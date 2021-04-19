@@ -30,9 +30,9 @@ public:
       const unordered_map<State, shared_ptr<Node>, Hash>& closed_,
       const bool                                          isForceCommit)
     {
+        closed = closed_;
         dijkstraNancyBackup(open, closed_);
         stack<shared_ptr<Node>> commitedNodes;
-        closed = closed_;
         prefixDeepThinking(start, commitedNodes);
 
         if (commitedNodes.empty() && isForceCommit) {
@@ -56,20 +56,23 @@ protected:
         // Start by initializing every state in closed to inf hhat
         for (auto it = closedCopy.begin(); it != closedCopy.end(); it++) {
             it->second->setBackupHHat(numeric_limits<double>::infinity());
+            // DEBUG_MSG("dijksttra closed:" + it->second->toString());
         }
 
         // initialiizing every node on open to its hhat
         for (auto node : open) {
             node->setBackupHHat(node->getHHatValue());
             node->setNancyFrontier(node);
+            // DEBUG_MSG("dijksttra open:" + node->toString());
         }
 
         // Order open by hhat
         open.swapComparator(Node::compareNodesBackedHHat);
 
-        while (!closedCopy.empty() && !open.empty()) {
+        while (!open.empty()) {
             auto cur = open.top();
             open.pop();
+            // DEBUG_MSG("dijksttra state" + cur->toString());
 
             closedCopy.erase(cur->getState());
             auto preds = domain.predecessors(cur->getState());
@@ -77,7 +80,7 @@ protected:
             for (const auto& s : preds) {
                 auto it = closedCopy.find(s);
 
-                if (it == closedCopy.end()) {
+                if (it == closedCopy.end() || it->second != cur->getParent()) {
                     continue;
                 }
 
@@ -98,6 +101,16 @@ protected:
                     open.update(parentNode);
                 }
             }
+        }
+
+        // everything else in the closed is deadend
+        for (auto it = closedCopy.begin(); it != closedCopy.end(); it++) {
+            it->second->setHValue(numeric_limits<double>::infinity());
+            it->second->setDValue(numeric_limits<double>::infinity());
+            it->second->setDErrValue(numeric_limits<double>::infinity());
+            it->second->setEpsilonH(0);
+            it->second->setEpsilonD(0);
+            it->second->setNancyFrontier(it->second);
         }
     }
 
@@ -148,7 +161,9 @@ protected:
         }
 
         DEBUG_MSG("alpha " + alpha->toString());
+        DEBUG_MSG("alpha frontier" + alpha->getNancyFrontier()->toString());
         DEBUG_MSG("beta " + beta->toString());
+        DEBUG_MSG("beta frontier" + beta->getNancyFrontier()->toString());
 
         auto pChooseAlpha = getPChooseAlpha(alpha, beta, timeStep);
 
@@ -245,40 +260,29 @@ protected:
         shared_ptr<Node> bestChild;
         Cost             bestFHat = numeric_limits<double>::infinity();
 
+        DEBUG_MSG("getAlphh on state " + node->toString());
         for (State child : children) {
-            // DEBUG_MSG("child, " + child.toString());
             auto it = closed.find(child);
 
             if (it == closed.end()) {
-                // DEBUG_MSG("not in closed");
                 continue;
             }
 
             if (it->second->getParent() != node) {
-                // DEBUG_MSG("not parent's kid");
                 continue;
             }
 
             auto childNode = it->second;
 
-            // DEBUG_MSG("bestFHat " + to_string(bestFHat));
-            // DEBUG_MSG("childNode " + childNode->toString());
-            // DEBUG_MSG("childNodeNancyFront " +
-            // childNode->getNancyFrontier()->toString());
-            // DEBUG_MSG("childNancyFrontier " +
-            // childNode->getNancyFrontier()->getState().toString());
-            // DEBUG_MSG("childFhat " +
-            // to_string(childNode->getNancyFrontier()->getFHatValue()));
+            DEBUG_MSG("getAlphh work on kid " + childNode->toString());
             if (childNode->getNancyFrontier()->getFHatValue() < bestFHat) {
 
-                // DEBUG_MSG("update bestchild");
                 bestChild = childNode;
                 bestFHat  = childNode->getNancyFrontier()->getFHatValue();
             }
         }
 
         if (bestChild != nullptr) {
-            // DEBUG_MSG("find alpha");
             assert(bestChild != node);
         }
 
@@ -343,11 +347,11 @@ protected:
                        2.0) *
                    min(1.0, ds / node->getNancyFrontier()->getDValue());
 
-        //DEBUG_MSG("epsilonh " +
-                  //to_string(node->getNancyFrontier()->getPathBasedEpsilonH()));
-        //DEBUG_MSG("ds " + to_string(ds));
-        //DEBUG_MSG("dab " + to_string(node->getNancyFrontier()->getDValue()));
-        //DEBUG_MSG("mean " + to_string(mean) + " var " + to_string(var));
+        // DEBUG_MSG("epsilonh " +
+        // to_string(node->getNancyFrontier()->getPathBasedEpsilonH()));
+        // DEBUG_MSG("ds " + to_string(ds));
+        // DEBUG_MSG("dab " + to_string(node->getNancyFrontier()->getDValue()));
+        // DEBUG_MSG("mean " + to_string(mean) + " var " + to_string(var));
         DiscreteDistribution dist(100, mean, var);
         return dist;
     }
@@ -375,7 +379,7 @@ protected:
 
         for (const auto& binAlpah : d1) {
             for (const auto& binBeta : d2) {
-                if (binAlpah.cost < binBeta.cost) {
+                if (binAlpah.cost <= binBeta.cost) {
                     prob += binAlpah.probability * binBeta.probability;
                 }
             }
