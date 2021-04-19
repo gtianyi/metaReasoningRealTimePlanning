@@ -260,7 +260,7 @@ protected:
         shared_ptr<Node> bestChild;
         Cost             bestFHat = numeric_limits<double>::infinity();
 
-        DEBUG_MSG("getAlphh on state " + node->toString());
+        // DEBUG_MSG("getAlphh on state " + node->toString());
         for (State child : children) {
             auto it = closed.find(child);
 
@@ -274,7 +274,7 @@ protected:
 
             auto childNode = it->second;
 
-            DEBUG_MSG("getAlphh work on kid " + childNode->toString());
+            // DEBUG_MSG("getAlphh work on kid " + childNode->toString());
             if (childNode->getNancyFrontier()->getFHatValue() < bestFHat) {
 
                 bestChild = childNode;
@@ -362,8 +362,8 @@ protected:
 
         for (const auto& binAlpah : d1) {
             for (const auto& binBeta : d2) {
-                expMin = min(binAlpah.cost, binBeta.cost) *
-                         binAlpah.probability * binBeta.probability;
+                expMin += min(binAlpah.cost, binBeta.cost) *
+                          binAlpah.probability * binBeta.probability;
             }
         }
 
