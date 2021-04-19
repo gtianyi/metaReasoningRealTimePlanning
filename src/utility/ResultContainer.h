@@ -7,6 +7,7 @@ using namespace std;
 struct ResultContainer {
     vector<vector<string>> paths;
     vector<vector<string>> visited;
+    vector<vector<string>> committed;
     vector<bool> isKeepThinkingFlags;
     bool solutionFound;
     double solutionCost;
@@ -38,6 +39,7 @@ struct ResultContainer {
         GATnodesExpanded = res.GATnodesExpanded;
         paths = res.paths;
         visited = res.visited;
+        committed = res.committed;
         isKeepThinkingFlags = res.isKeepThinkingFlags;
 		lookaheadCpuTime = res.lookaheadCpuTime;
 		epsilonHGlobal = res.epsilonHGlobal;
@@ -56,6 +58,7 @@ struct ResultContainer {
             GATnodesExpanded = rhs.GATnodesExpanded;
             paths = rhs.paths;
             visited = rhs.visited;
+            committed = rhs.committed;
             isKeepThinkingFlags = rhs.isKeepThinkingFlags;
             lookaheadCpuTime = rhs.lookaheadCpuTime;
             epsilonHGlobal = rhs.epsilonHGlobal;

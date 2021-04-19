@@ -126,6 +126,8 @@ public:
                     vector<string> curVisitied;
                     res.visited.push_back(curVisitied);
                     res.isKeepThinkingFlags.push_back(false);
+                    vector<string> committed;
+                    res.committed.push_back(committed);
                     // TODO cost can not be computed here
                     // res.solutionCost += n->getGValue();
                     res.solutionLength += 1;
@@ -199,6 +201,10 @@ public:
                 // res.solutionCost += n->getGValue();
                 res.solutionLength += 1;
                 ++continueCounter;
+                if (commitQueue.empty() && !actionQueue.empty()) {
+                    vector<string> committed;
+                    res.committed.push_back(committed);
+                }
             }
 
             // deadend
@@ -229,12 +235,15 @@ public:
 
             assert(commitQueue.size() > 0);
 
+            vector<string> commited;
             while (!commitQueue.empty()) {
                 auto n = commitQueue.top();
                 commitQueue.pop();
                 actionQueue.push(n);
                 start = n;
+                commited.push_back(n->getState().toString());
             }
+            res.committed.push_back(commited);
 
             // LearninH Phase
             metaReasonLearningAlgo->learn(open, closed);
