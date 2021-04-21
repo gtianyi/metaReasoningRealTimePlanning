@@ -67,8 +67,9 @@ int main(int argc, char** argv)
 
     auto optionAdder = options.add_options();
 
-    optionAdder("d,domain", "domain type: treeWorld, tile, pancake, racetrack",
-                cxxopts::value<std::string>()->default_value("racetrack"));
+    optionAdder(
+      "d,domain", "domain type: gridPathfinding, tile, pancake, racetrack",
+      cxxopts::value<std::string>()->default_value("gridPathfinding"));
 
     optionAdder("s,subdomain",
                 "puzzle type: uniform, inverse, heavy, sqrt; "
@@ -87,6 +88,12 @@ int main(int argc, char** argv)
 
     optionAdder("i,instance", "instance file name",
                 cxxopts::value<std::string>()->default_value("2-4x4.st"));
+
+    optionAdder("f,heuristicType",
+                "gridPathfinding type : euclidean, mahattan;"
+                "racetrack type : euclidean, dijkstra;"
+                "pancake: gap,gapm1, gapm2",
+                cxxopts::value<std::string>()->default_value("euclidean"));
 
     optionAdder("v,visOut", "visulization Out file",
                 cxxopts::value<std::string>());
