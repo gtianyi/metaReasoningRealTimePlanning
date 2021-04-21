@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 '''
 python3 script
-plotting code for generate bounded cost search related plots
+plotting code for generate realtime metareasoning related plots
 
 Author: Tianyi Gu
-Date: 09/15/2020
+Date: 04/21/2021
 '''
 
 __author__ = 'TianyiGu'
@@ -53,16 +53,16 @@ def parseArugments():
     parser.add_argument(
         '-b',
         action='store',
-        dest='boundPercentStart',
-        help='bound percent start: eg anything above 1.2,(default: 1.2)',
-        default='1.2')
+        dest='lookaheadStart',
+        help='lookahead start: eg anything above 3,(default: 3)',
+        default='3')
 
     parser.add_argument(
         '-e',
         action='store',
-        dest='boundPercentEnd',
-        help='bound percent end: anything below 10, (default: 10)',
-        default='10')
+        dest='lookaheadEnd',
+        help='lookahead end: anything below 100, (default: 100)',
+        default='100')
 
     parser.add_argument('-z',
                         action='store',
