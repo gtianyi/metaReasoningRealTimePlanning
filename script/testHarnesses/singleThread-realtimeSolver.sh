@@ -59,8 +59,8 @@ n_of_i_Pancake=100
 n_of_i_Racetrack=25
 #n_of_i_Racetrack=1
 n_of_i_Vacuumworld=60
-#n_of_i_GridPathfinding=100
-n_of_i_GridPathfinding=1
+n_of_i_GridPathfinding=100
+#n_of_i_GridPathfinding=1
 
 size="4"
 sizeOfRegularPancake="50"
