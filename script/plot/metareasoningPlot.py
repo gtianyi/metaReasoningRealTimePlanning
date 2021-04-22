@@ -74,9 +74,9 @@ def parseArugments():
         '-t',
         action='store',
         dest='plotType',
-        help='plot type, nodeGen(default), cpu, coveragetb, coverageplt, \
-                         nodeGenDiff, fixedbaseline, part10',
-        default='nodeGen')
+        help='plot type, gatNodeGen(default), nodeGen, solutionLen,coveragetb, coverageplt, \
+                         nodeGenDiff, part10',
+        default='gatNodeGen')
 
     parser.add_argument(
         '-ht',
@@ -170,7 +170,6 @@ def makeLinePlot(xAxis, yAxis, dataframe, hue,
     plt.close()
     plt.clf()
     plt.cla()
-
 
 def makePairWiseDf(rawdf, baseline, algorithms):
     df = pd.DataFrame()

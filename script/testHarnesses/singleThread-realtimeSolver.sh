@@ -42,14 +42,16 @@ subdomainPancake=("regular" "heavy")
 subdomainVacuumworld=("uniform" "heavy-easy")
 #subdomainVacuumworld=("heavy")
 subdomainRacetrack=("barto-bigger" "hansen-bigger")
-subdomainGridPathfinding=("goalObstacleField" "startObstacleField" "uniform")
+#subdomainGridPathfinding=("goalObstacleField" "startObstacleField" "uniformObstacleField")
+subdomainGridPathfinding=("uniformObstacleField")
 
 heuristicTypes=("NA")
 heuristicTypePancake=("gap" "gapm2")
 heuristicTypeRacetrack=("dijkstra" "euclidean")
 
 #lookaheads=(3 10 30 100 300 1000)
-lookaheads=(10)
+#lookaheads=(10)
+lookaheads=(3 10 30 100 300 1000)
 
 n_of_i_Tile=100
 #n_of_i_Tile=10
@@ -67,7 +69,8 @@ sizeOfRegularPancake="50"
 sizeOfHeavyPancake="16"
 sizeOfSumHeavyPancake="10"
 
-realtimeSolvers=("one" "alltheway" "dtrts")
+#realtimeSolvers=("one" "alltheway" "dtrts")
+realtimeSolvers=("one" "alltheway")
 timeLimit=600
 memoryLimit=7
 
@@ -292,7 +295,7 @@ for curDomainId in "${!domain[@]}"; do
 
             infile_path="${research_home}/realtime-nancy/worlds/${curDomain}"
 
-            outfile_path="${research_home}/metareasoning/results/${curDomain}/${subdomain}/solverDir"
+            outfile_path="${research_home}/metareasoning/results/${curDomain}/${curSubdomain}/solverDir"
 
             infile_name=""
 
@@ -313,21 +316,21 @@ for curDomainId in "${!domain[@]}"; do
                 fi
 
                 infile_name="instance-${size}x${size}.st"
-                outfile="${outfile_path}/BoundNumber-size-${size}-instance.json"
+                outfile="${outfile_path}/LA-lookahead-size-${size}-instance.json"
                 infile="${infile_path}/${infile_name}"
             fi
 
             if [ "${curDomain}" == "pancake" ]; then
                 infile_name="instance-${size}.pan"
                 outfile_path="${outfile_path/solverDir/$heuristicType}/solverDir"
-                outfile="${outfile_path}/BoundNumber-size-${size}-instance.json"
+                outfile="${outfile_path}/LA-lookahead-size-${size}-instance.json"
                 infile="${infile_path}/${size}/${infile_name}"
             fi
 
             if [ "${curDomain}" == "racetrack" ]; then
                 infile_name="${curSubdomain}-instance.init"
                 outfile_path="${outfile_path/solverDir/$heuristicType}/solverDir"
-                outfile="${outfile_path}/BoundNumber-instance.json"
+                outfile="${outfile_path}/LA-lookahead-instance.json"
                 infile="${infile_path}/${infile_name}"
             fi
 
@@ -340,16 +343,16 @@ for curDomainId in "${!domain[@]}"; do
                 fi
 
                 infile_name="instance.vw"
-                outfile="${outfile_path}/BoundPercent-BoundNumber-instance.json"
+                outfile="${outfile_path}/LA-lookahead-instance.json"
                 infile="${infile_path}/${infile_name}"
             fi
 
             if [ "${curDomain}" == "gridPathfinding" ]; then
 
-                infile_path="${research_home}/realtime-nancy/worlds/gridPathfinding/${subdomain}"
+                infile_path="${research_home}/realtime-nancy/worlds/gridPathfinding/${curSubdomain}"
 
                 infile_name="instance.gp"
-                outfile="${outfile_path}/lookahead-instance.json"
+                outfile="${outfile_path}/LA-lookahead-instance.json"
                 infile="${infile_path}/${infile_name}"
             fi
 
