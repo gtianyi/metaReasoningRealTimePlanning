@@ -1,7 +1,7 @@
 # Project Name
 
 ## Welcome to <Project Name> project!
-The purpose of the project is to... 
+The purpose of the project is to implement several commitment strategy for real-time search algorithms and run benchmark with classical search domains such as Grid Pathfinding, Sliding Tiles, and Pancakes. 
 
 ## Prerequisites
 We use `clang` ecosystem to compile and develop the codebase. You can install necessary components by running
@@ -51,20 +51,62 @@ build_type=Release
 Note that you can have multiple profiles and also modify existing ones when needed.
 For more details see the Conan [Getting Started](https://docs.conan.io/en/latest/getting_started.html) guide.
 
-
 ## Compilation
 ```
-git clone <repo>
-mkdir build && cd build
-conan install ../<repo>
-cmake -GNinja ../<repo>
-ninja <executable> 
+git clone git@github.com:gtianyi/metaReasoningRealTimePlanning.git
+mkdir build_release && cd build_release
+conan install ../metaReasoningRealTimePlanning --build missing
+cmake -GNinja ../metaReasoningRealTimePlanning
+ninja realtimeSolver 
 ```
+For debug purpose, you can also do the following
+```
+cd ..
+mkdir build_debug && cd build_debug
+conan install ../metaReasoningRealTimePlanning --build missing
+cmake -DCMAKE_BUILD_TYPE=Debug -GNinja ../metaReasoningRealTimePlanning
+ninja realtimeSolver 
+```
+
+## clang-d user config
+```
+cd <repo dir>
+ln -s ../build_release/compile_commands.json compile_commands.json
+```
+If you also use editor plugin such as clangd, don't forget to symlink the build flag to the root of the source tree. For more details see the clangd [prject-setup](https://clangd.llvm.org/installation.html#project-setup) guide.
 
 ## Run
 ```
-bin/<executable>
+cd <repo>
+cd ../build_release
+bin/realtimeSolver -h
+This is a realtime search program
+Usage:
+  ./realtimeSolver [OPTION...]
+
+  -d, --domain arg          domain type: gridPathfinding, tile, pancake,
+                            racetrack (default: gridPathfinding)
+  -s, --subdomain arg       puzzle type: uniform, inverse, heavy, sqrt;
+                            pancake type: regular, heavy;racetrack map :
+                            barto-bigger, hanse-bigger-double, uniform (default:
+                            barto-bigger)
+  -a, --alg arg             commit algorithm: one, alltheway, fhatpmr, dtrts
+                            (default: alltheway)
+  -l, --lookahead arg       expansion limit (default: 10)
+  -o, --performenceOut arg  performence Out file
+  -i, --instance arg        instance file name (default: 2-4x4.st)
+  -f, --heuristicType arg   gridPathfinding type : euclidean,
+                            mahattan;racetrack type : euclidean, dijkstra;pancake: gap,gapm1,
+                            gapm2 (default: euclidean)
+  -v, --visOut arg          visulization Out file
+  -h, --help                Print usage
+
+example command:
+bin/realtimeSolver -d gridPathfinding -a one -l 10 -o outtest.json < <instance_file_dir>/gridPathfinding/goalObstacleField/10.gp
 ```
+
+## Experiments Pipeline
+TODO
 
 # Problem Instances
 All the problem instance file can be found [here](https://github.com/gtianyi/searchDomainInstanceFiles)
