@@ -1,7 +1,7 @@
-# Project Name
+# Metareasoing for Realtime Search
 
-## Welcome to <Project Name> project!
-The purpose of the project is to implement several commitment strategy for real-time search algorithms and run benchmark with classical search domains such as Grid Pathfinding, Sliding Tiles, and Pancakes. 
+## Welcome to Metareasoing for Realtime Search project!
+The purpose of the project is to implement several commitment strategies for real-time search algorithms and run benchmark with classical search domains such as Grid Pathfinding, Sliding Tiles, and Pancakes. 
 
 ## Prerequisites
 We use `clang` ecosystem to compile and develop the codebase. You can install necessary components by running
@@ -110,4 +110,7 @@ TODO
 
 # Problem Instances
 All the problem instance file can be found [here](https://github.com/gtianyi/searchDomainInstanceFiles)
+
+# Visualization Repo
+Some visualization can be found [here](https://github.com/gtianyi/metaReasoningAnimation)
 
