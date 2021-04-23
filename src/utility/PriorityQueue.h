@@ -98,7 +98,7 @@ public:
     void push(const T item)
     {
         // If the size is at maximum capacity, find the worst item in the queue
-        if (c.size() == capacity) {
+        if (static_cast<double>(c.size()) == capacity) {
             size_t worstIndex = 0;
             for (size_t i = 1; i < c.size(); i++) {
                 if (comp(c[worstIndex], c[i])) {

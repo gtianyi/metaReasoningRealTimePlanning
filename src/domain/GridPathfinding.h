@@ -2,7 +2,6 @@
 #include "../utility/PairHash.h"
 #include "../utility/SlidingWindow.h"
 #include "../utility/debug.h"
-
 #include <algorithm>
 #include <bitset>
 #include <cassert>
@@ -107,8 +106,11 @@ public:
         parseInput(input);
         initilaizeActions();
         // costVariant = 0; // default
+        heuristicVariant = 0; // Default
         initialize();
     }
+
+    void setVariant(int variant) { heuristicVariant = variant; }
 
     // void setVariant(int variant) { costVariant = variant; }
 
@@ -124,7 +126,7 @@ public:
             return correctedD[state];
         }
 
-        Cost d = euclideanDistToGoal(state);
+        Cost d = heuristicFunction(state);
 
         updateDistance(state, d);
 
@@ -138,7 +140,7 @@ public:
             return correctedDerr[state];
         }
 
-        Cost derr = euclideanDistToGoal(state);
+        Cost derr = heuristicFunction(state);
 
         updateDistanceErr(state, derr);
 
@@ -152,11 +154,19 @@ public:
             return correctedH[state];
         }
 
-        Cost h = euclideanDistToGoal(state);
+        Cost h = heuristicFunction(state);
 
         updateHeuristic(state, h);
 
         return correctedH[state];
+    }
+    
+    Cost heuristicFunction(const State& state)
+    {
+        if (heuristicVariant == 1) {
+            return manhattanDistanceToGoal(state);
+        }
+        return euclideanDistToGoal(state);
     }
 
     void updateDistance(const State& state, Cost value)
@@ -334,6 +344,16 @@ private:
           pow(static_cast<int>(s.getX()) - static_cast<int>(goalX), 2.0) +
           pow(static_cast<int>(s.getY()) - static_cast<int>(goalY), 2.0));
     }
+    
+    double manhattanDistanceToGoal(const State& s) const
+    {
+        return static_cast<double>(abs_diff(s.getX(),goalX) +
+        abs_diff(s.getY(),goalY));
+    }
+    
+    size_t abs_diff(size_t a,size_t b) const{
+      return a > b ? a - b : b - a;
+    }
 
     std::unordered_set<Location, pair_hash> blockedCells;
     vector<Action>                          actions;
@@ -349,6 +369,7 @@ private:
     unordered_map<State, Cost, HashState>          correctedD;
     unordered_map<State, Cost, HashState>          correctedDerr;
     unordered_map<State, vector<State>, HashState> predecessorsTable;
+    int                                            heuristicVariant;
 
     size_t goalX;
     size_t goalY;
