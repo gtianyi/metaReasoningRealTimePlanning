@@ -133,9 +133,9 @@ int main(int argc, char** argv)
           std::make_shared<PancakePuzzle>(cin);
 
         if (subDomain == "heavy") {
-            world->setVariant(1);
+            world->setPuzzleVariant(1);
         } else if (subDomain == "sumheavy") {
-            world->setVariant(2);
+            world->setPuzzleVariant(2);
         }
 
         res = startAlg<PancakePuzzle>(world, alg, lookaheadDepth);

@@ -188,7 +188,9 @@ public:
     }
     */
 
-    void setVariant(int variant) { puzzleVariant = variant; }
+    void setPuzzleVariant(int variant) { puzzleVariant = variant; }
+    void setHeuristicVariant(int variant) { heuristicVariant = variant; }
+    void setGapModifier(size_t mod) { gapModifier = mod; }
 
     bool isGoal(const State& s) const
     {
@@ -205,14 +207,23 @@ public:
         // Problem Where add 1 to heuristic if the adjacent sizes of the
         // pancakes differs more than 1 For heavy pancake problems. For each gap
         // b/w x and y, add min(x,y) to heuristic instead of just 1
+        // two heuristic variants:
+        // 0: subtract gapModifier
+        // 1: ignore gapModifier states
         size_t size_ = state.getOrdering().size();
         size_t plate = size_ + 1;
         size_t sum   = 0;
+        size_t statesIgnored = 0;
+        if (heuristicVariant == 1) {
+            statesIgnored = gapModifier;
+        }
 
         for (size_t i = 1; i < size; ++i) {
             size_t x   = state.getOrdering()[i - 1];
             size_t y   = state.getOrdering()[i];
-            int    dif = static_cast<int>(x) - static_cast<int>(y);
+            if (x < statesIgnored || y < statesIgnored)
+              continue;
+            int dif = static_cast<int>(x) - static_cast<int>(y);
             if (dif > 1 || dif < -1) {
                 if (puzzleVariant == 0) {
                     ++sum;
@@ -223,26 +234,20 @@ public:
         }
 
         size_t x   = state.getOrdering()[size - 1];
-        int    dif = static_cast<int>(x) - static_cast<int>(plate);
-        if (dif > 1 || dif < -1) {
-            if (puzzleVariant == 0) {
-                ++sum;
-            } else {
-                sum += x;
-            }
+        if (!(x < statesIgnored || plate < statesIgnored)){
+          int dif = static_cast<int>(x) - static_cast<int>(plate);
+          if (dif > 1 || dif < -1) {
+              if (puzzleVariant == 0) {
+                  ++sum;
+              } else {
+                  sum += x;
+              }
+          }
         }
 
-        // three variant
-        // 0: gap heuristic
-        // 1: gap minus 1 heuristic
-        // 2: gap minus 2 heuristic
-        if (heuristicVariant == 1) {
-            return max(0.0, static_cast<double>(sum) - 1);
+        if (heuristicVariant == 0) {
+            return max(0.0, static_cast<double>(sum) - static_cast<double>(gapModifier));
         }
-        if (heuristicVariant == 2) {
-            return max(0.0, static_cast<double>(sum) - 2);
-        }
-
         return static_cast<double>(sum);
     }
 
@@ -470,5 +475,6 @@ public:
     unordered_map<State, Cost, HashState> correctedDerr;
     int                                   puzzleVariant;
     int                                   heuristicVariant;
+    size_t                                gapModifier;
     size_t                                size;
 };
