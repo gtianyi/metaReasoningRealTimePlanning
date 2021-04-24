@@ -154,7 +154,7 @@ public:
         str += "epsilon-d: " + my_to_string(getPathBasedEpsilonD()) + ",";
         str += "f-hat: " + my_to_string(getFHatValue()) + ",";
         str += "d-hat: " + my_to_string(getDHatValue()) + ",";
-        str += "h-hat: " + my_to_string(getHHatValue()) + "}";
+        str += "h-hat: " + my_to_string(getHHatValue()) + ",";
         str += "backed h-hat: " + my_to_string(getBackupHHatValue()) + ",";
         if (getParent() == nullptr) {
             str += "parent: null }";

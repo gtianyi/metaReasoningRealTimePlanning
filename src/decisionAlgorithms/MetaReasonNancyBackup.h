@@ -36,10 +36,10 @@ public:
         prefixDeepThinking(start, commitedNodes);
 
         if (commitedNodes.empty() && isForceCommit) {
-            DEBUG_MSG("force commit");
+            //DEBUG_MSG("force commit");
             auto alpha = getAlpha(start);
             if (alpha == nullptr) {
-                DEBUG_MSG("alpha is null");
+                //DEBUG_MSG("alpha is null");
                 return commitedNodes;
             }
             commitedNodes.push(alpha);
@@ -142,8 +142,8 @@ protected:
         auto alpha = getAlpha(node);
         auto beta  = getBeta(node);
 
-        DEBUG_MSG("meta reasoning========== timestep " + to_string(timeStep));
-        DEBUG_MSG("cur " + node->toString());
+        // DEBUG_MSG("meta reasoning========== timestep " +
+        // to_string(timeStep)); DEBUG_MSG("cur " + node->toString());
         if (alpha == nullptr && beta == nullptr) {
             // this is the frontier, so not commit
             // we need grandchilden info to make meta decision
@@ -151,24 +151,24 @@ protected:
             // that has no children generated yet.
             // lookahead has to be at least 2,
             // otherwise it will always choose to not commit
-            DEBUG_MSG("both a and b are null, return false ");
+            // DEBUG_MSG("both a and b are null, return false ");
             return false;
         }
 
         if (beta == nullptr) {
-            DEBUG_MSG("b is null, return true");
+            // DEBUG_MSG("b is null, return true");
             return true;
         }
 
-        DEBUG_MSG("alpha " + alpha->toString());
-        DEBUG_MSG("alpha frontier" + alpha->getNancyFrontier()->toString());
-        DEBUG_MSG("beta " + beta->toString());
-        DEBUG_MSG("beta frontier" + beta->getNancyFrontier()->toString());
+        /*        DEBUG_MSG("alpha " + alpha->toString());*/
+        // DEBUG_MSG("alpha frontier" + alpha->getNancyFrontier()->toString());
+        // DEBUG_MSG("beta " + beta->toString());
+        // DEBUG_MSG("beta frontier" + beta->getNancyFrontier()->toString());
 
         auto pChooseAlpha = getPChooseAlpha(alpha, beta, timeStep);
 
         if (pChooseAlpha == 1.0) {
-            DEBUG_MSG("p_a is 1, return true");
+            //DEBUG_MSG("p_a is 1, return true");
             return true;
         }
 
@@ -176,8 +176,8 @@ protected:
         auto utilityOfNotCommit =
           notCommitUtility(alpha, beta, pChooseAlpha, timeStep);
 
-        DEBUG_MSG("uCMT " + to_string(utilityOfCommit) + " uNCMT " +
-                  to_string(utilityOfNotCommit));
+        // DEBUG_MSG("uCMT " + to_string(utilityOfCommit) + " uNCMT " +
+        // to_string(utilityOfNotCommit));
         return utilityOfCommit > utilityOfNotCommit;
     }
 
@@ -196,12 +196,12 @@ protected:
         auto alphabeta  = getBeta(alpha);
 
         if (alphaalpha == nullptr && alphabeta == nullptr) {
-            DEBUG_MSG("no kid for alpha");
+            //DEBUG_MSG("no kid for alpha");
             return alpha->getNancyFrontier()->getFHatValue();
         }
 
         if (alphabeta == nullptr) {
-            DEBUG_MSG("no kid for beta");
+            //DEBUG_MSG("no kid for beta");
             return alphaalpha->getNancyFrontier()->getFHatValue();
         }
 
@@ -224,7 +224,7 @@ protected:
         double utilityOfAlpha = alpha->getNancyFrontier()->getFHatValue();
 
         if (alphaalpha != nullptr && alphabeta != nullptr) {
-            DEBUG_MSG("has both kids for alpha, in nCMT");
+            //DEBUG_MSG("has both kids for alpha, in nCMT");
             auto pAlphaalpha =
               distributionAfterSearch(alphaalpha, (timeStep / 2.0 + 1) / 2.0);
             auto pAlphabeta =
@@ -236,7 +236,7 @@ protected:
         auto utilityOfBeta = beta->getNancyFrontier()->getFHatValue();
 
         if (betaalpha != nullptr && betabeta != nullptr) {
-            DEBUG_MSG("has both kids for beta, in nCMT");
+            //DEBUG_MSG("has both kids for beta, in nCMT");
             auto pBetaalpha =
               distributionAfterSearch(betaalpha, (timeStep / 2.0 + 1) / 2.0);
             auto pBetabeta =
@@ -245,9 +245,9 @@ protected:
             utilityOfBeta = expectedMinimum(pBetaalpha, pBetabeta);
         }
 
-        DEBUG_MSG("uA " + to_string(utilityOfAlpha));
-        DEBUG_MSG("uB " + to_string(utilityOfBeta));
-        DEBUG_MSG("pChooseAlpha " + to_string(pChooseAlpha));
+        //DEBUG_MSG("uA " + to_string(utilityOfAlpha));
+        //DEBUG_MSG("uB " + to_string(utilityOfBeta));
+        //DEBUG_MSG("pChooseAlpha " + to_string(pChooseAlpha));
 
         return pChooseAlpha * utilityOfAlpha +
                (1 - pChooseAlpha) * utilityOfBeta;
@@ -367,7 +367,7 @@ protected:
             }
         }
 
-        DEBUG_MSG("exp min: " + to_string(expMin));
+        //DEBUG_MSG("exp min: " + to_string(expMin));
 
         return expMin;
     }

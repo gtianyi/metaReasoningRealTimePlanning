@@ -39,7 +39,7 @@ public:
         // actions
         size_t expansions = 1;
 
-        DEBUG_MSG("lookahead=================");
+        //DEBUG_MSG("lookahead=================");
         // Expand until the limit
         vector<string> visited;
         while (!open.empty() && (expansions < lookahead)) {
@@ -60,7 +60,7 @@ public:
               ",";
             debugStr += "expansion: " + to_string(expansions) + "}";
 
-            DEBUG_MSG(debugStr);
+            //DEBUG_MSG(debugStr);
 
             visited.push_back(cur->getState().toString());
 
