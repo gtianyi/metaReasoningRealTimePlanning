@@ -37,8 +37,8 @@ def parseArugments():
         '-d',
         action='store',
         dest='domain',
-        help='domain: tile(default), pancake, racetrack, vacuumworld',
-        default='tile')
+        help='domain: gridPathfinding(default), tile, pancake, racetrack, vacuumworld',
+        default='gridPathfinding')
 
     parser.add_argument(
         '-s',
@@ -47,22 +47,23 @@ def parseArugments():
         help='subdomain: tile: uniform(default), heavy, inverse; \
         pancake: regular, heavy; \
         racetrack : barto-big,uniform-small, barto-bigger, hanse-bigger-double;\
-        vacuumworld: uniform, heavy',
-        default='uniform')
+        vacuumworld: uniform, heavy;\
+        gridPathfinding: goalObstacleField, startObstacleField, uniformObstacleField',
+        default='goalObstacleField')
 
     parser.add_argument(
         '-b',
         action='store',
         dest='lookaheadStart',
-        help='lookahead start: eg anything above 3,(default: 3)',
+        help='lookahead start: eg anything above this value,(default: 3)',
         default='3')
 
     parser.add_argument(
         '-e',
         action='store',
         dest='lookaheadEnd',
-        help='lookahead end: anything below 100, (default: 100)',
-        default='100')
+        help='lookahead end: anything below this value, (default: 100)',
+        default='1000')
 
     parser.add_argument('-z',
                         action='store',
@@ -109,8 +110,43 @@ def parseArugments():
 
     return parser
 
-#_ = totalInstance
+def makePointPlot(xAxis, yAxis, dataframe, hue,
+                  orderList, hueOrderList, xLabel, yLabel, outputName,
+                  markerList, title):
+    sns.set(rc={
+        'figure.figsize': (13, 10),
+        'font.size': 27,
+        'text.color': 'black'
+    })
+    ax = sns.pointplot(x=xAxis,
+                       y=yAxis,
+                       hue=hue,
+                       order=orderList,
+                       hue_order=hueOrderList,
+                       data=dataframe,
+                       ci=95,
+                       errwidth=3,
+                       join=False,
+                       dodge=0.1,
+                       palette="Set2",
+                       markers=markerList)
+    ax.tick_params(colors='black', labelsize=12)
+    plt.ylabel(yLabel, color='black', fontsize=18)
+    plt.xlabel(xLabel, color='black', fontsize=18)
 
+    plt.setp(ax.get_legend().get_texts(), fontsize='18')  # for legend text
+    plt.setp(ax.get_legend().get_title(), fontsize='18')  # for legend title
+
+    fontSize = 18
+    ax.set_title(title, fontdict={'fontsize': fontSize})
+
+    plt.savefig(outputName, bbox_inches="tight", pad_inches=0)
+    plt.savefig(outputName.replace(".jpg", ".eps"),
+                bbox_inches="tight",
+                pad_inches=0)
+    plt.close()
+    plt.clf()
+    plt.cla()
 
 def makeLinePlot(xAxis, yAxis, dataframe, hue,
                  xLabel, yLabel, _totalInstance,
@@ -356,18 +392,18 @@ def makeTimeUpperBoundDf(rawdf, totalInstance):
 
     return df
 
-
-def readData(args, algorithms, domainBoundsConfig):
+def readData(args, algorithms, lookaheadConfig):
     domainSize = args.size
     domainType = args.domain
     subdomainType = args.subdomain
 
     algorithm = []
-    boundValue = []
-    cpu = []
+    lookaheadValue = []
+    gatNodeExpanded = []
     instance = []
     nodeExpanded = []
     nodeGenerated = []
+    solutionLength = []
 
     print("reading in data...")
 
@@ -392,43 +428,37 @@ def readData(args, algorithms, domainBoundsConfig):
                 continue
 
             numbersInFileName = re.findall(r'\d*\.?\d+', jsonFile)
-            sizeStr = numbersInFileName[1]
+            # sizeStr = numbersInFileName[1]
+            sizeStr = 0
 
             if domainType == "pancake" and sizeStr != domainSize:
                 continue
 
-            boundValueStr = numbersInFileName[0]
-            boundV = float(boundValueStr)
+            lookheadValueStr = numbersInFileName[0]
+            lookahead = float(lookheadValueStr)
 
-            lowerBound = float(args.boundPercentStart)
-            upperBound = float(args.boundPercentEnd)
-            allAvailableBoundValue = \
-                domainBoundsConfig["avaiableBoundPercent"][args.domain][args.subdomain]
+            lowerBound = float(args.lookaheadStart)
+            upperBound = float(args.lookaheadEnd)
+            allAvailableLookaheadValue = \
+                lookaheadConfig["avaiableLookahead"][args.domain][args.subdomain]
 
-            if(boundV < lowerBound or
-               boundV > upperBound or
-               (boundV not in allAvailableBoundValue)):
+            if(lookahead < lowerBound or
+               lookahead > upperBound or
+               (lookahead not in allAvailableLookaheadValue)):
                 continue
 
             try:
                 with open(inPath_alg + "/" + jsonFile) as json_data:
 
                     resultData = json.load(json_data)
-
-                    # if alg == "ptsnancy":
-                    # if alg == "ptsnancy" and resultData["node generated"] > 1000:
-                    # print("reading ", alg, jsonFile, "generated: ",
-                    # resultData["node generated"])
-
-                    # if alg == "ptsnancy" and resultData["node generated"] > 1000:
-                    # continue
-
                     algorithm.append(algorithms[alg])
-                    boundValue.append(boundV)
-                    cpu.append(resultData["cpu time"])
+                    lookaheadValue.append(lookahead)
+                    gatNodeExpanded.append(resultData["GAT node expanded"])
                     instance.append(resultData["instance"])
                     nodeExpanded.append(resultData["node expanded"])
                     nodeGenerated.append(resultData["node generated"])
+                    solutionLength.append(resultData["solution length"])
+
             except JSONDecodeError as e:
                 print("json error:", e)
                 print("when reading ", alg, jsonFile)
@@ -437,14 +467,14 @@ def readData(args, algorithms, domainBoundsConfig):
     rawdf = pd.DataFrame({
         "Algorithm": algorithm,
         "instance": instance,
-        "boundValues": boundValue,
-
+        "lookahead": lookaheadValue,
         "nodeGen": nodeGenerated,
         "nodeExp": nodeExpanded,
-        "cpu": cpu,
+        "gatNodeExpanded": gatNodeExpanded,
+        "solutionLength": solutionLength,
     })
 
-    # print rawdf
+    # print(rawdf)
     return rawdf
 
 def makeCoverageTable(df, args, totalInstance):
@@ -493,25 +523,25 @@ def makeCoverageTable(df, args, totalInstance):
 
 def makeCoveragePlot(df, args, totalInstance, showname, colorDict):
     algs = []
-    bound = []
+    lookaheads = []
     solved = []
 
     for alg in df["Algorithm"].unique():
-        for cbound in df["boundValues"].unique():
+        for lookahead in df["lookahead"].unique():
             algs.append(alg)
-            bound.append(cbound)
+            lookaheads.append(lookahead)
             dfins = df[(df["Algorithm"] == alg) & (
-                df["boundValues"] == cbound)]
+                df["lookahead"] == lookahead)]
             solved.append(len(dfins))
 
     rawdf = pd.DataFrame({
         "Algorithm": algs,
-        "boundValues": bound,
+        "lookahead": lookaheads,
         "solved": solved
     })
 
-    makeLinePlot("boundValues", "solved", rawdf, "Algorithm",
-                 showname["boundValues"],
+    makeLinePlot("lookahead", "solved", rawdf, "Algorithm",
+                 showname["lookahead"],
                  showname["solved"].replace(
                      "totalInstance", totalInstance), totalInstance,
                  createOutFilePrefix(args) + args.plotType+".jpg", colorDict,
@@ -552,7 +582,6 @@ def createOutFilePrefix(args):
 
     return outFilePrefix
 
-
 def createTitle(args):
     title = {"tile": {"uniform": "Uniform Tile",
                       "heavy": "Heavy Tile",
@@ -569,7 +598,13 @@ def createTitle(args):
                              "heavy-easy": "Easy Heavy Vacuum World"},
              "racetrack": {"barto-bigger": "Barto Map Track - "+args.heuristicType.capitalize(),
                            "hansen-bigger": "Hansen Map Track - "+args.heuristicType.capitalize(),
-                           }
+                           },
+             "gridPathfinding": {"goalObstacleField":
+                                 "Handcrafted pathfinding - Obstacle Field Near Goal",
+                             "startObstacleField":
+                                 "Handcrafted pathfinding - Obstacle Field Near Start",
+                             "uniformObstacleField":
+                                 "Handcrafted pathfinding - Uniform Obstacle Field",},
              }
 
     return title[args.domain][args.subdomain]
@@ -583,41 +618,25 @@ def plotting(args, config):
     showname = config.getShowname()
     totalInstance = config.getTotalInstance()
 
-    rawdf = readData(args, algorithms, config.getDomainBoundsConfig())
+    rawdf = readData(args, algorithms, config.getDomainLookaheadConfig())
 
-    if args.plotType == "coveragetb":
-        makeCoverageTable(rawdf, args, totalInstance[args.domain])
-    elif args.plotType == "coverageplt":
+    if args.plotType == "coverageplt":
         makeCoveragePlot(rawdf, args, totalInstance[args.domain],
                          showname, config.getAlgorithmColor())
-    elif args.plotType == "par10":
-
-        df = makePar10Df(rawdf, totalInstance[args.domain])
-
-        makeLinePlot("boundValues", "cpu", df, "Algorithm",
-                     showname["boundValues"],
-                     "Par10 CPU Time", totalInstance[args.domain],
-                     createOutFilePrefix(args) + args.plotType+".jpg",
-                     config.getAlgorithmColor(), createTitle(args), showSolvedInstance=False)
-    elif args.plotType == "timelimitcpu":
-
-        df = makeTimeUpperBoundDf(rawdf, totalInstance[args.domain])
-
-        makeLinePlot("boundValues", "cpu", df, "Algorithm",
-                     showname["boundValues"],
-                     "raw CPU Time", totalInstance[args.domain],
-                     createOutFilePrefix(args) + args.plotType+".jpg",
-                     config.getAlgorithmColor(), createTitle(args), showSolvedInstance=False)
-
     else:
-        df = allSolvedDf(rawdf)
-        makeLinePlot("boundValues", args.plotType, df, "Algorithm",
-                     showname["boundValues"], showname[args.plotType],
-                     totalInstance[args.domain],
-                     createOutFilePrefix(args) + args.plotType+".jpg",
-                     config.getAlgorithmColor(), createTitle(args))
-
-
+        # df = allSolvedDf(rawdf)
+        # makeLinePlot("boundValues", args.plotType, df, "Algorithm",
+                     # showname["boundValues"], showname[args.plotType],
+                     # totalInstance[args.domain],
+                     # createOutFilePrefix(args) + args.plotType+".jpg",
+                     # config.getAlgorithmColor(), createTitle(args))
+        limits = \
+            config.getDomainLookaheadConfig()["avaiableLookahead"][args.domain][args.subdomain]
+        makePointPlot("lookahead", args.plotType, rawdf, "Algorithm",
+                      limits, config.getAlgorithmsOrder(),
+                      showname["lookahead"], showname[args.plotType],
+                      createOutFilePrefix(args) + args.plotType+".jpg",
+                      config.getMarkers(), createTitle(args))
 def main():
     parser = parseArugments()
     args = parser.parse_args()

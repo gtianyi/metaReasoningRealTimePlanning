@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 '''
 python3 script
-plotting config code for generate bounded cost search related plots
+plotting config code for generate
+action commitment startegy for realtime search related plots
 
 Author: Tianyi Gu
-Date: 01/12/2021
+Date: 04/24/2021
 '''
 
 from collections import OrderedDict
@@ -15,44 +16,40 @@ class Configure:
 
         self.algorithms = OrderedDict(
             {
-                "ees": "EES",
-                # "ees-slowheap": "EES-slow",
-                "ees95": "EES95",
-                # "dxes-0.8": "DXES-0.8",
-                # "dxes-0.95": "DXES",
-                "dxes": "DXES",
-                "roundrobin1": "RR111",
-                "roundrobin8": "RR811",
-                # "dxes-xes-no-rev": "DXES-NRE",
-                # "dxes-xes-rev": "DXES-RE",
-                # "ptshhat": r"$\widehat{\mathrm{PTS}}$",
-                "wastar": "WA*",
-                # "wastar-slowheap": "WA*-slow",
-                "dps": "DPS",
+                "one": "ONE",
+                "alltheway": "ALL",
+                # "dtrts": "Our Approach",
             }
         )
 
+        self.algorithmOrder = ["ONE", "ALL"]
+
+        self.markers = [
+        "o", "v", "s", "<", "p", "h", "^", "D", "X", ">", "o", "v", "s", "<",
+        "p", "h", "^", "D", "X", ">"
+        ]
+
         self.algorithmPalette = {
-            "EES":"royalblue",
+            "ONE": "royalblue",
             # "EES-slow":"orangered",
-            "EES95":"orangered",
+            "ALL": "orangered",
             # r"$\widehat{\mathrm{PTS}}$": "orangered",
-            "WA*": "limegreen",
+            # "Our Approach": "limegreen",
             # "WA*-slow": "orangered",
             # "BEES-LBUG": "maroon",
             # "BEES - EpsLocal": "deepskyblue",
             # "DXES-0.8": "magenta",
-            "DXES": "maroon",
+            # "DXES": "maroon",
             # "DXES-NRE": "magenta",
             # "DXES-RE": "maroon",
-            "DPS": "tan",
+            # "DPS": "tan",
             # "XES-LBUG": "maroon",
             # "XES-cp05": "maroon",
             # "XES-sp100": "maroon",
             # "XES-c05s100": "maroon",
             # "BEES95": "tan",
-            "RR111": "darkgreen",
-            "RR811": "yellowgreen",
+            # "RR111": "darkgreen",
+            # "RR811": "yellowgreen",
             # "BEES95-cp05": "darkgreen",
             # "BEES95-sp100": "darkgreen",
             # "BEES95-c05s100": "darkgreen",
@@ -67,37 +64,37 @@ class Configure:
         }
 
         self.showname = {"nodeGen": "Total Nodes Generated",
-                         "nodeExp": "Total Nodes expanded",
+                         "nodeExp": "Total Nodes Expanded",
+                         "gatNodeGen": " GAT Nodes Expanded",
                          "nodeGenDiff": "Algorithm Node Generated /  baseline Node Generated",
                          "fixedbaseline":
                          "log10 (Algorithm Node Generated /  baseline Node Generated)",
                          "cpu": "Raw CPU Time",
                          "solved": "Number of Solved Instances (Total=totalInstance)",
-                         "boundValues": "Suboptimality",
+                         "lookahead": "Node Expansion Limit",
+                         "solutionLength": "Solution Length",
                          }
 
         self.totalInstance = {"tile": "100", "pancake": "100",
-                              "racetrack": "25", "vacuumworld": "60"}
+                              "racetrack": "25", "vacuumworld": "60",
+                              "gridPathfinding": "100"}
 
-        self.domainBoundsConfig = {
-                                   "avaiableBoundPercent": {
-                                       "tile":{
-                                           "uniform":[1.1,1.2,1.4,1.5,1.7,2,3,4.5,8],
-                                           "heavy":[1.1,1.2,1.4,1.5,1.7,2,3,4.5,8],
-                                           "inverse":[2,3,6,10,20,40],
+        self.domainLookaheadConfig = {
+                                   "avaiableLookahead": {
+                                       "tile": {
+                                           "uniform": [3, 10, 30, 100, 300, 1000],
                                        },
                                        "pancake": {
-                                           "regular":[1.1,1.2,1.4,1.5,1.7,2,3,4.5,8],
-                                           "heavy":[1.1,1.2,1.4,1.5,1.7,2,3,4.5,8],
                                        },
                                        "vacuumworld": {
-                                           "uniform":[1.1,1.2,1.4,1.5,1.7,2,3,4.5,8],
-                                           "heavy-easy":[1.1,1.2,1.4,1.5,1.7,2,3,4.5,8],
                                        },
                                        "racetrack": {
-                                           "barto-bigger":[1.1,1.2,1.4,1.5,1.7,2,3,4.5,8],
-                                           "hansen-bigger":[1.1,1.2,1.4,1.5,1.7,2,3,4.5,8],
                                        },
+                                       "gridPathfinding": {
+                                           "goalObstacleField": [3, 10, 30, 100, 300, 1000],
+                                           "startObstacleField": [3, 10, 30, 100, 300, 1000],
+                                           "uniformObstacleField": [3, 10, 30, 100, 300, 1000],
+                                       }
                                     },
                                    }
 
@@ -105,8 +102,12 @@ class Configure:
         if removeAlgorithm:
             for rmAlg in removeAlgorithm:
                 if rmAlg in self.algorithms:
+                    self.algorithmOrder.pop(self.algorithms[rmAlg])
                     self.algorithms.pop(rmAlg)
         return self.algorithms
+
+    def getAlgorithmsOrder(self):
+        return self.algorithmOrder
 
     def getShowname(self):
         return self.showname
@@ -114,8 +115,11 @@ class Configure:
     def getTotalInstance(self):
         return self.totalInstance
 
-    def getDomainBoundsConfig(self):
-        return self.domainBoundsConfig
+    def getDomainLookaheadConfig(self):
+        return self.domainLookaheadConfig
 
     def getAlgorithmColor(self):
         return self.algorithmPalette
+
+    def getMarkers(self):
+        return self.markers
