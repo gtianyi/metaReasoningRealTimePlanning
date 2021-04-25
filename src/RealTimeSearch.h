@@ -211,6 +211,7 @@ public:
 
             // deadend
             if (open.empty()) {
+                DEBUG_MSG("deadend!");
                 break;
             }
 

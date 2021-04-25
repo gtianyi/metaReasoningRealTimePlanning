@@ -123,8 +123,9 @@ protected:
         stack<shared_ptr<Node>> reverseOrderedCommitedNodes;
 
         while (isCommit(cur, t)) {
-            reverseOrderedCommitedNodes.push(cur);
-            cur = getAlpha(cur);
+            auto curAlpha = getAlpha(cur);
+            reverseOrderedCommitedNodes.push(curAlpha);
+            cur = curAlpha;
             if (cur == nullptr) {
                 break;
             }
