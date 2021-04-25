@@ -1,5 +1,5 @@
 #pragma once
-#include "../utility/DiscreteDistribution.h"
+#include "../utility/NormalDistribution.h"
 #include "../utility/PriorityQueue.h"
 #include "../utility/debug.h"
 #include "DecisionAlgorithm.h"
@@ -36,10 +36,10 @@ public:
         prefixDeepThinking(start, commitedNodes);
 
         if (commitedNodes.empty() && isForceCommit) {
-            //DEBUG_MSG("force commit");
+            // DEBUG_MSG("force commit");
             auto alpha = getAlpha(start);
             if (alpha == nullptr) {
-                //DEBUG_MSG("alpha is null");
+                // DEBUG_MSG("alpha is null");
                 return commitedNodes;
             }
             commitedNodes.push(alpha);
@@ -168,7 +168,7 @@ protected:
         auto pChooseAlpha = getPChooseAlpha(alpha, beta, timeStep);
 
         if (pChooseAlpha == 1.0) {
-            //DEBUG_MSG("p_a is 1, return true");
+            // DEBUG_MSG("p_a is 1, return true");
             return true;
         }
 
@@ -187,7 +187,7 @@ protected:
         auto pAlpha = distributionAfterSearch(alpha, timeStep / 2.0);
         auto pBeta  = distributionAfterSearch(beta, timeStep / 2.0);
 
-        return pChoose(pAlpha, pBeta);
+        return computeProbOfd1IsLowerCost(pAlpha, pBeta);
     }
 
     Cost commitUtility(shared_ptr<Node> alpha, int timeStep)
@@ -196,12 +196,12 @@ protected:
         auto alphabeta  = getBeta(alpha);
 
         if (alphaalpha == nullptr && alphabeta == nullptr) {
-            //DEBUG_MSG("no kid for alpha");
+            // DEBUG_MSG("no kid for alpha");
             return alpha->getNancyFrontier()->getFHatValue();
         }
 
         if (alphabeta == nullptr) {
-            //DEBUG_MSG("no kid for beta");
+            // DEBUG_MSG("no kid for beta");
             return alphaalpha->getNancyFrontier()->getFHatValue();
         }
 
@@ -224,7 +224,7 @@ protected:
         double utilityOfAlpha = alpha->getNancyFrontier()->getFHatValue();
 
         if (alphaalpha != nullptr && alphabeta != nullptr) {
-            //DEBUG_MSG("has both kids for alpha, in nCMT");
+            // DEBUG_MSG("has both kids for alpha, in nCMT");
             auto pAlphaalpha =
               distributionAfterSearch(alphaalpha, (timeStep / 2.0 + 1) / 2.0);
             auto pAlphabeta =
@@ -236,7 +236,7 @@ protected:
         auto utilityOfBeta = beta->getNancyFrontier()->getFHatValue();
 
         if (betaalpha != nullptr && betabeta != nullptr) {
-            //DEBUG_MSG("has both kids for beta, in nCMT");
+            // DEBUG_MSG("has both kids for beta, in nCMT");
             auto pBetaalpha =
               distributionAfterSearch(betaalpha, (timeStep / 2.0 + 1) / 2.0);
             auto pBetabeta =
@@ -245,9 +245,9 @@ protected:
             utilityOfBeta = expectedMinimum(pBetaalpha, pBetabeta);
         }
 
-        //DEBUG_MSG("uA " + to_string(utilityOfAlpha));
-        //DEBUG_MSG("uB " + to_string(utilityOfBeta));
-        //DEBUG_MSG("pChooseAlpha " + to_string(pChooseAlpha));
+        // DEBUG_MSG("uA " + to_string(utilityOfAlpha));
+        // DEBUG_MSG("uB " + to_string(utilityOfBeta));
+        // DEBUG_MSG("pChooseAlpha " + to_string(pChooseAlpha));
 
         return pChooseAlpha * utilityOfAlpha +
                (1 - pChooseAlpha) * utilityOfBeta;
@@ -328,8 +328,8 @@ protected:
         return secondBestChild;
     }
 
-    DiscreteDistribution distributionAfterSearch(shared_ptr<Node> node,
-                                                 double timeStepFraction)
+    NormalDistribution distributionAfterSearch(shared_ptr<Node> node,
+                                               double timeStepFraction)
     {
         auto mean = node->getNancyFrontier()->getFHatValue();
         // Just use global delay
@@ -352,40 +352,23 @@ protected:
         // DEBUG_MSG("ds " + to_string(ds));
         // DEBUG_MSG("dab " + to_string(node->getNancyFrontier()->getDValue()));
         // DEBUG_MSG("mean " + to_string(mean) + " var " + to_string(var));
-        DiscreteDistribution dist(100, mean, var);
-        return dist;
+        return NormalDistribution(mean, var);
     }
 
-    double expectedMinimum(DiscreteDistribution d1, DiscreteDistribution d2)
+    double expectedMinimum(const NormalDistribution& d1,
+                           const NormalDistribution& d2)
     {
-        double expMin = 0;
+        auto theta = sqrt(d1.getVar() + d2.getVar());
 
-        for (const auto& binAlpah : d1) {
-            for (const auto& binBeta : d2) {
-                expMin += min(binAlpah.cost, binBeta.cost) *
-                          binAlpah.probability * binBeta.probability;
-            }
-        }
+        auto x = (d1.getMean() - d2.getMean()) / theta;
 
-        //DEBUG_MSG("exp min: " + to_string(expMin));
+        auto expMin = d1.getMean() * standardNormalCDF(x) +
+                      d2.getMean() * standardNormalCDF(x) -
+                      theta * standardNormalPDF(x);
+
+        // DEBUG_MSG("exp min: " + to_string(expMin));
 
         return expMin;
-    }
-
-    // probability of choose d1
-    double pChoose(DiscreteDistribution d1, DiscreteDistribution d2)
-    {
-        double prob = 0;
-
-        for (const auto& binAlpah : d1) {
-            for (const auto& binBeta : d2) {
-                if (binAlpah.cost <= binBeta.cost) {
-                    prob += binAlpah.probability * binBeta.probability;
-                }
-            }
-        }
-
-        return prob;
     }
 
     string                                       decisionModule;
