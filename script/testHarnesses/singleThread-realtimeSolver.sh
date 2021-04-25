@@ -43,15 +43,15 @@ subdomainVacuumworld=("uniform" "heavy-easy")
 #subdomainVacuumworld=("heavy")
 subdomainRacetrack=("barto-bigger" "hansen-bigger")
 #subdomainGridPathfinding=("goalObstacleField" "startObstacleField" "uniformObstacleField")
-subdomainGridPathfinding=("uniformObstacleField")
+subdomainGridPathfinding=("goalObstacleField")
 
 heuristicTypes=("NA")
 heuristicTypePancake=("gap" "gapm2")
 heuristicTypeRacetrack=("dijkstra" "euclidean")
 
 #lookaheads=(3 10 30 100 300 1000)
-#lookaheads=(10)
-lookaheads=(3 10 30 100 300 1000)
+lookaheads=(10)
+#lookaheads=(3 10 30 100 300 1000)
 
 n_of_i_Tile=100
 #n_of_i_Tile=10
@@ -70,7 +70,7 @@ sizeOfHeavyPancake="16"
 sizeOfSumHeavyPancake="10"
 
 #realtimeSolvers=("one" "alltheway" "dtrts")
-realtimeSolvers=("one" "alltheway")
+realtimeSolvers=("dtrts")
 timeLimit=600
 memoryLimit=7
 
