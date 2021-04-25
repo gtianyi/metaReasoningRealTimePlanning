@@ -18,11 +18,11 @@ class Configure:
             {
                 "one": "ONE",
                 "alltheway": "ALL",
-                # "dtrts": "Our Approach",
+                "dtrts": "Our Approach",
             }
         )
 
-        self.algorithmOrder = ["ONE", "ALL"]
+        self.algorithmOrder = [self.algorithms[key] for key in self.algorithms]
 
         self.markers = [
         "o", "v", "s", "<", "p", "h", "^", "D", "X", ">", "o", "v", "s", "<",
@@ -34,7 +34,7 @@ class Configure:
             # "EES-slow":"orangered",
             "ALL": "orangered",
             # r"$\widehat{\mathrm{PTS}}$": "orangered",
-            # "Our Approach": "limegreen",
+            "Our Approach": "limegreen",
             # "WA*-slow": "orangered",
             # "BEES-LBUG": "maroon",
             # "BEES - EpsLocal": "deepskyblue",

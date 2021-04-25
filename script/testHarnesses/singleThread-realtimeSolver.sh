@@ -42,16 +42,16 @@ subdomainPancake=("regular" "heavy")
 subdomainVacuumworld=("uniform" "heavy-easy")
 #subdomainVacuumworld=("heavy")
 subdomainRacetrack=("barto-bigger" "hansen-bigger")
-#subdomainGridPathfinding=("goalObstacleField" "startObstacleField" "uniformObstacleField")
-subdomainGridPathfinding=("goalObstacleField")
+subdomainGridPathfinding=("goalObstacleField" "startObstacleField" "uniformObstacleField")
+#subdomainGridPathfinding=("goalObstacleField")
 
 heuristicTypes=("NA")
 heuristicTypePancake=("gap" "gapm2")
 heuristicTypeRacetrack=("dijkstra" "euclidean")
 
 #lookaheads=(3 10 30 100 300 1000)
-lookaheads=(10)
-#lookaheads=(3 10 30 100 300 1000)
+#lookaheads=(10)
+lookaheads=(3 10 30 100 300 1000)
 
 n_of_i_Tile=100
 #n_of_i_Tile=10
