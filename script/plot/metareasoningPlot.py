@@ -75,9 +75,10 @@ def parseArugments():
         '-t',
         action='store',
         dest='plotType',
-        help='plot type, gatNodeGen(default), nodeGen, solutionLen,coveragetb, coverageplt, \
+        help='plot type, gatRatio(default), gatNodeGen, nodeGen, \
+                         solutionLen,coveragetb, coverageplt, \
                          nodeGenDiff, part10',
-        default='gatNodeGen')
+        default='gatRatio')
 
     parser.add_argument(
         '-ht',
@@ -477,6 +478,31 @@ def readData(args, algorithms, lookaheadConfig):
     # print(rawdf)
     return rawdf
 
+def getRatioDF(rawdf, args):
+    gatRatio = []
+
+    instanceOpt = getOptSol(args)
+
+    for _, row in rawdf.iterrows():
+        ratio = float(row["solutionLength"]) / float(instanceOpt[row["instance"]])
+        gatRatio.append(ratio)
+
+    rawdf["gatRatio"] = gatRatio
+
+    return rawdf
+
+def getOptSol(args):
+    instanceOpt = {}
+    inPath = "../../../../realtime-nancy/worlds/" + \
+        args.domain + "/" + args.subdomain + "/"
+
+    for file in os.listdir(inPath):
+        instanceID = file[:-3]
+        f = open(inPath+file)
+        instanceOpt[instanceID] = f.readlines()[-1]
+
+    return instanceOpt
+
 def makeCoverageTable(df, args, totalInstance):
     out_file = createOutFilePrefix(args) + args.plotType+".jpg"
 
@@ -619,19 +645,20 @@ def plotting(args, config):
     totalInstance = config.getTotalInstance()
 
     rawdf = readData(args, algorithms, config.getDomainLookaheadConfig())
-
+    limits = \
+            config.getDomainLookaheadConfig()["avaiableLookahead"][args.domain][args.subdomain]
     if args.plotType == "coverageplt":
         makeCoveragePlot(rawdf, args, totalInstance[args.domain],
                          showname, config.getAlgorithmColor())
+    elif args.plotType == "gatRatio":
+        ratioDF = getRatioDF(rawdf, args)
+        makePointPlot("lookahead", args.plotType, ratioDF, "Algorithm",
+                      limits, config.getAlgorithmsOrder(),
+                      showname["lookahead"], showname[args.plotType],
+                      createOutFilePrefix(args) + args.plotType+".jpg",
+                      config.getMarkers(), createTitle(args))
+
     else:
-        # df = allSolvedDf(rawdf)
-        # makeLinePlot("boundValues", args.plotType, df, "Algorithm",
-                     # showname["boundValues"], showname[args.plotType],
-                     # totalInstance[args.domain],
-                     # createOutFilePrefix(args) + args.plotType+".jpg",
-                     # config.getAlgorithmColor(), createTitle(args))
-        limits = \
-            config.getDomainLookaheadConfig()["avaiableLookahead"][args.domain][args.subdomain]
         makePointPlot("lookahead", args.plotType, rawdf, "Algorithm",
                       limits, config.getAlgorithmsOrder(),
                       showname["lookahead"], showname[args.plotType],

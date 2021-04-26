@@ -73,6 +73,7 @@ class Configure:
                          "solved": "Number of Solved Instances (Total=totalInstance)",
                          "lookahead": "Node Expansion Limit",
                          "solutionLength": "Solution Length",
+                         "gatRatio": "GAT factor of optimal",
                          }
 
         self.totalInstance = {"tile": "100", "pancake": "100",
