@@ -483,11 +483,16 @@ def getRatioDF(rawdf, args):
 
     instanceOpt = getOptSol(args)
 
+    # worestRatio, worestID = 0,-1
     for _, row in rawdf.iterrows():
         ratio = float(row["solutionLength"]) / float(instanceOpt[row["instance"]])
         gatRatio.append(ratio)
+        # if row["Algorithm"] == "Our Approach":
+            # if ratio > worestRatio:
+                # worestRatio, worestID = ratio, row["instance"]
 
     rawdf["gatRatio"] = gatRatio
+    # print("worest instance", worestID)
 
     return rawdf
 
