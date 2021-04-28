@@ -29,6 +29,7 @@ import numpy as np
 
 from plotConfig import Configure
 
+
 def parseArugments():
 
     parser = argparse.ArgumentParser(description='boundedCostPlot')
@@ -111,6 +112,7 @@ def parseArugments():
 
     return parser
 
+
 def makePointPlot(xAxis, yAxis, dataframe, hue,
                   orderList, hueOrderList, xLabel, yLabel, outputName,
                   markerList, title):
@@ -148,6 +150,7 @@ def makePointPlot(xAxis, yAxis, dataframe, hue,
     plt.close()
     plt.clf()
     plt.cla()
+
 
 def makeLinePlot(xAxis, yAxis, dataframe, hue,
                  xLabel, yLabel, _totalInstance,
@@ -207,6 +210,7 @@ def makeLinePlot(xAxis, yAxis, dataframe, hue,
     plt.close()
     plt.clf()
     plt.cla()
+
 
 def makePairWiseDf(rawdf, baseline, algorithms):
     df = pd.DataFrame()
@@ -352,6 +356,7 @@ def makePar10Df(rawdf, totalInstance):
 
     return df
 
+
 def makeTimeUpperBoundDf(rawdf, totalInstance):
 
     timeLimitAlgorithm = []
@@ -392,6 +397,7 @@ def makeTimeUpperBoundDf(rawdf, totalInstance):
     df = df.append(timeLimitdf)
 
     return df
+
 
 def readData(args, algorithms, lookaheadConfig):
     domainSize = args.size
@@ -478,23 +484,26 @@ def readData(args, algorithms, lookaheadConfig):
     # print(rawdf)
     return rawdf
 
+
 def getRatioDF(rawdf, args):
     gatRatio = []
 
     instanceOpt = getOptSol(args)
 
-    # worestRatio, worestID = 0,-1
+    worestRatio, worestID = 0, -1
     for _, row in rawdf.iterrows():
-        ratio = float(row["solutionLength"]) / float(instanceOpt[row["instance"]])
+        ratio = float(row["solutionLength"]) / \
+            float(instanceOpt[row["instance"]])
         gatRatio.append(ratio)
-        # if row["Algorithm"] == "Our Approach":
-            # if ratio > worestRatio:
-                # worestRatio, worestID = ratio, row["instance"]
+        if row["Algorithm"] == "Our Approach" and row["lookahead"] == 10:
+            if ratio > worestRatio:
+                worestRatio, worestID = ratio, row["instance"]
 
     rawdf["gatRatio"] = gatRatio
-    # print("worest instance", worestID)
+    print("worest instance", worestID)
 
     return rawdf
+
 
 def getOptSol(args):
     instanceOpt = {}
@@ -507,6 +516,7 @@ def getOptSol(args):
         instanceOpt[instanceID] = f.readlines()[-1]
 
     return instanceOpt
+
 
 def makeCoverageTable(df, args, totalInstance):
     out_file = createOutFilePrefix(args) + args.plotType+".jpg"
@@ -551,6 +561,7 @@ def makeCoverageTable(df, args, totalInstance):
     table(ax, tabledf, loc='center')  # where tabledf is your data frame
 
     plt.savefig(out_file, dpi=200)
+
 
 def makeCoveragePlot(df, args, totalInstance, showname, colorDict):
     algs = []
@@ -609,9 +620,10 @@ def createOutFilePrefix(args):
 
     if args.removeAlgorithm:
         for alg in args.removeAlgorithm:
-            outFilePrefix += "no-"+ alg + "-"
+            outFilePrefix += "no-" + alg + "-"
 
     return outFilePrefix
+
 
 def createTitle(args):
     title = {"tile": {"uniform": "Uniform Tile",
@@ -632,10 +644,10 @@ def createTitle(args):
                            },
              "gridPathfinding": {"goalObstacleField":
                                  "Handcrafted pathfinding - Obstacle Field Near Goal",
-                             "startObstacleField":
+                                 "startObstacleField":
                                  "Handcrafted pathfinding - Obstacle Field Near Start",
-                             "uniformObstacleField":
-                                 "Handcrafted pathfinding - Uniform Obstacle Field",},
+                                 "uniformObstacleField":
+                                 "Handcrafted pathfinding - Uniform Obstacle Field", },
              }
 
     return title[args.domain][args.subdomain]
@@ -651,7 +663,8 @@ def plotting(args, config):
 
     rawdf = readData(args, algorithms, config.getDomainLookaheadConfig())
     limits = \
-            config.getDomainLookaheadConfig()["avaiableLookahead"][args.domain][args.subdomain]
+        config.getDomainLookaheadConfig(
+        )["avaiableLookahead"][args.domain][args.subdomain]
     if args.plotType == "coverageplt":
         makeCoveragePlot(rawdf, args, totalInstance[args.domain],
                          showname, config.getAlgorithmColor())
@@ -669,6 +682,8 @@ def plotting(args, config):
                       showname["lookahead"], showname[args.plotType],
                       createOutFilePrefix(args) + args.plotType+".jpg",
                       config.getMarkers(), createTitle(args))
+
+
 def main():
     parser = parseArugments()
     args = parser.parse_args()

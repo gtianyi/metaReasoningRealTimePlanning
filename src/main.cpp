@@ -116,46 +116,46 @@ int main(int argc, char** argv)
 
     if (domain == "tile") {
 
-        std::shared_ptr<SlidingTilePuzzle> world;
+        /*   std::shared_ptr<SlidingTilePuzzle> world;*/
 
-        if (subDomain == "uniform") {
-            world = std::make_shared<SlidingTilePuzzle>(cin);
-        } else if (subDomain == "heavy") {
-            world = std::make_shared<HeavyTilePuzzle>(cin);
-        } else if (subDomain == "inverse") {
-            world = std::make_shared<InverseTilePuzzle>(cin);
-        }
+        // if (subDomain == "uniform") {
+        // world = std::make_shared<SlidingTilePuzzle>(cin);
+        //} else if (subDomain == "heavy") {
+        // world = std::make_shared<HeavyTilePuzzle>(cin);
+        //} else if (subDomain == "inverse") {
+        // world = std::make_shared<InverseTilePuzzle>(cin);
+        //}
 
-        res = startAlg<SlidingTilePuzzle>(world, alg, lookaheadDepth);
+        // res = startAlg<SlidingTilePuzzle>(world, alg, lookaheadDepth);
 
-    } else if (domain == "pancake") {
-        std::shared_ptr<PancakePuzzle> world =
-          std::make_shared<PancakePuzzle>(cin);
+        /* } else if (domain == "pancake") {*/
+        // std::shared_ptr<PancakePuzzle> world =
+        // std::make_shared<PancakePuzzle>(cin);
 
-        if (subDomain == "heavy") {
-            world->setPuzzleVariant(1);
-        } else if (subDomain == "sumheavy") {
-            world->setPuzzleVariant(2);
-        }
+        // if (subDomain == "heavy") {
+        // world->setPuzzleVariant(1);
+        //} else if (subDomain == "sumheavy") {
+        // world->setPuzzleVariant(2);
+        //}
 
-        res = startAlg<PancakePuzzle>(world, alg, lookaheadDepth);
-    } else if (domain == "racetrack") {
+        // res = startAlg<PancakePuzzle>(world, alg, lookaheadDepth);
+        //} else if (domain == "racetrack") {
 
-        string mapFile = "/home/aifs1/gu/phd/research/workingPaper/"
-                         "realtime-nancy/worlds/racetrack/map/" +
-                         subDomain + ".track";
+        // string mapFile = "/home/aifs1/gu/phd/research/workingPaper/"
+        //"realtime-nancy/worlds/racetrack/map/" +
+        // subDomain + ".track";
 
-        ifstream map(mapFile);
+        // ifstream map(mapFile);
 
-        if (!map.good()) {
-            cout << "map file not exist: " << mapFile << endl;
-            exit(1);
-        }
+        // if (!map.good()) {
+        // cout << "map file not exist: " << mapFile << endl;
+        // exit(1);
+        //}
 
-        std::shared_ptr<RaceTrack> world =
-          std::make_shared<RaceTrack>(map, cin);
+        // std::shared_ptr<RaceTrack> world =
+        // std::make_shared<RaceTrack>(map, cin);
 
-        res = startAlg<RaceTrack>(world, alg, lookaheadDepth);
+        /*res = startAlg<RaceTrack>(world, alg, lookaheadDepth);*/
     } else if (domain == "gridPathfinding") {
 
         /*string mapFile =*/

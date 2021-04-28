@@ -69,6 +69,8 @@ public:
                     it->second->setDValue(domain.distance(s));
                     it->second->setDErrValue(domain.distanceErr(s));
                     it->second->setHValue(domain.heuristic(s));
+                    it->second->setEpsilonH(cur->getPathBasedEpsilonH());
+                    it->second->setEpsilonD(cur->getPathBasedEpsilonD());
 
                     if (open.find(it->second) == open.end()) {
                         open.push(it->second);

@@ -39,7 +39,7 @@ public:
         // actions
         size_t expansions = 1;
 
-        //DEBUG_MSG("lookahead=================");
+        // DEBUG_MSG("lookahead=================");
         // Expand until the limit
         vector<string> visited;
         while (!open.empty() && (expansions < lookahead)) {
@@ -60,7 +60,7 @@ public:
               ",";
             debugStr += "expansion: " + to_string(expansions) + "}";
 
-            //DEBUG_MSG(debugStr);
+            // DEBUG_MSG(debugStr);
 
             visited.push_back(cur->getState().toString());
 
@@ -87,7 +87,7 @@ public:
             vector<State> children = domain.successors(cur->getState());
             res.nodesGenerated += children.size();
 
-            State                    bestChild;
+            shared_ptr<Node>         bestChildNode;
             Cost                     bestF = numeric_limits<double>::infinity();
             vector<shared_ptr<Node>> childrenNodes;
 
@@ -102,8 +102,8 @@ public:
                 bool dup = duplicateDetection(childNode, closed, open);
 
                 if (!dup && childNode->getFValue() < bestF) {
-                    bestF     = childNode->getFValue();
-                    bestChild = child;
+                    bestF         = childNode->getFValue();
+                    bestChildNode = childNode;
                 }
 
                 // Duplicate detection
@@ -116,10 +116,18 @@ public:
 
             // Learn path-based one-step error
             if (bestF != numeric_limits<double>::infinity()) {
-                Cost epsD = (1 + domain.distance(bestChild)) - cur->getDValue();
-                Cost epsH = (domain.getEdgeCost(bestChild) +
-                             domain.heuristic(bestChild)) -
-                            cur->getHValue();
+                // Cost epsD = (1 + bestChildNode->getDValue()) -
+                // cur->getDValue();
+                Cost epsD =
+                  (1 + domain.heuristicFunction(bestChildNode->getState())) -
+                  domain.heuristicFunction(cur->getState());
+                // DEBUG_MSG("err" + my_to_string(epsD));
+                // DEBUG_MSG("child" + bestChildNode->toString());
+                // DEBUG_MSG("cur" + cur->toString());
+                Cost epsH =
+                  (domain.getEdgeCost(bestChildNode->getState()) +
+                   domain.heuristicFunction(bestChildNode->getState())) -
+                  domain.heuristicFunction(cur->getState());
 
                 for (auto child : childrenNodes) {
                     child->pushPathBasedEpsilons(epsH, epsD);
