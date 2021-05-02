@@ -83,7 +83,7 @@ class Configure:
         self.domainLookaheadConfig = {
                                    "avaiableLookahead": {
                                        "tile": {
-                                           "uniform": [3, 10, 30, 100, 300, 1000],
+                                           "uniform": [10, 30, 100, 300, 1000],
                                        },
                                        "pancake": {
                                        },
@@ -92,9 +92,9 @@ class Configure:
                                        "racetrack": {
                                        },
                                        "gridPathfinding": {
-                                           "goalObstacleField": [3, 10, 30, 100, 300, 1000],
-                                           "startObstacleField": [3, 10, 30, 100, 300, 1000],
-                                           "uniformObstacleField": [3, 10, 30, 100, 300, 1000],
+                                           "goalObstacleField": [10, 30, 100, 300, 1000],
+                                           "startObstacleField": [10, 30, 100, 300, 1000],
+                                           "uniformObstacleField": [10, 30, 100, 300, 1000],
                                        }
                                     },
                                    }

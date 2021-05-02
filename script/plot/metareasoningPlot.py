@@ -56,8 +56,8 @@ def parseArugments():
         '-b',
         action='store',
         dest='lookaheadStart',
-        help='lookahead start: eg anything above this value,(default: 3)',
-        default='3')
+        help='lookahead start: eg anything above this value,(default: 10)',
+        default='10')
 
     parser.add_argument(
         '-e',

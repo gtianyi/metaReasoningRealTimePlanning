@@ -51,7 +51,8 @@ heuristicTypeRacetrack=("dijkstra" "euclidean")
 
 #lookaheads=(3 10 30 100 300 1000)
 #lookaheads=(10)
-lookaheads=(3 10 30 100 300 1000)
+#lookaheads=(3 10 30 100 300 1000)
+lookaheads=(10 30 100 300 1000)
 
 n_of_i_Tile=100
 #n_of_i_Tile=10

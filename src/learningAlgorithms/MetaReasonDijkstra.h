@@ -52,6 +52,7 @@ public:
                   it = closed.find(s);
 
                 if (it != closed.end() &&
+                    cur->getParent() == it->second && 
                     domain.heuristic(s) > domain.getEdgeCost(cur->getState()) +
                                             domain.heuristic(cur->getState())) {
                     // Update the heuristic of this pedecessor
