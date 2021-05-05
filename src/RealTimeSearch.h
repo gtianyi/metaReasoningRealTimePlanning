@@ -163,6 +163,7 @@ public:
             int  continueCounter = 0;
             bool keepThinking    = false;
             bool goalReached     = false;
+
             while (commitQueue.empty() && !actionQueue.empty() &&
                    !goalReached) {
                 // do more search
@@ -231,6 +232,7 @@ public:
             vector<string> commited;
             while (!commitQueue.empty()) {
                 auto n = commitQueue.top();
+                DEBUG_MSG("commit: " << n->toString());
                 commitQueue.pop();
                 actionQueue.push(n);
                 start = n;

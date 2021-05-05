@@ -140,11 +140,11 @@ protected:
 
     bool isCommit(shared_ptr<Node> node, int timeStep)
     {
+        DEBUG_MSG("meta reasoning========== timestep " + to_string(timeStep));
         auto alpha = getAlpha(node);
         auto beta  = getBeta(node);
 
-        // DEBUG_MSG("meta reasoning========== timestep " +
-        // to_string(timeStep)); DEBUG_MSG("cur " + node->toString());
+        DEBUG_MSG("cur " + node->toString());
         if (alpha == nullptr && beta == nullptr) {
             // this is the frontier, so not commit
             // we need grandchilden info to make meta decision
@@ -152,24 +152,24 @@ protected:
             // that has no children generated yet.
             // lookahead has to be at least 2,
             // otherwise it will always choose to not commit
-            // DEBUG_MSG("both a and b are null, return false ");
+            DEBUG_MSG("both a and b are null, return false ");
             return false;
         }
 
         if (beta == nullptr) {
-            // DEBUG_MSG("b is null, return true");
+            DEBUG_MSG("b is null, return true");
             return true;
         }
 
-        /*        DEBUG_MSG("alpha " + alpha->toString());*/
-        // DEBUG_MSG("alpha frontier" + alpha->getNancyFrontier()->toString());
-        // DEBUG_MSG("beta " + beta->toString());
-        // DEBUG_MSG("beta frontier" + beta->getNancyFrontier()->toString());
+        DEBUG_MSG("alpha " + alpha->toString());
+        DEBUG_MSG("alpha frontier" + alpha->getNancyFrontier()->toString());
+        DEBUG_MSG("beta " + beta->toString());
+        DEBUG_MSG("beta frontier" + beta->getNancyFrontier()->toString());
 
         auto pChooseAlpha = getPChooseAlpha(alpha, beta, timeStep);
 
         if (pChooseAlpha == 1.0) {
-            // DEBUG_MSG("p_a is 1, return true");
+            DEBUG_MSG("p_a is 1, return true");
             return true;
         }
 
@@ -177,8 +177,8 @@ protected:
         auto utilityOfNotCommit =
           notCommitUtility(alpha, beta, pChooseAlpha, timeStep);
 
-        // DEBUG_MSG("uCMT " + to_string(utilityOfCommit) + " uNCMT " +
-        // to_string(utilityOfNotCommit));
+        DEBUG_MSG("uCMT " + to_string(utilityOfCommit) + " uNCMT " +
+                  to_string(utilityOfNotCommit));
         return utilityOfCommit > utilityOfNotCommit;
     }
 
@@ -261,7 +261,7 @@ protected:
         shared_ptr<Node> bestChild;
         Cost             bestFHat = numeric_limits<double>::infinity();
 
-        // DEBUG_MSG("getAlphh on state " + node->toString());
+        DEBUG_MSG("getAlphh on state " + node->toString());
         for (State child : children) {
             auto it = closed.find(child);
 
@@ -275,11 +275,18 @@ protected:
 
             auto childNode = it->second;
 
-            // DEBUG_MSG("getAlphh work on kid " + childNode->toString());
-            if (childNode->getNancyFrontier()->getFHatValue() < bestFHat) {
-
+            DEBUG_MSG("getAlphh work on kid " + childNode->toString());
+            DEBUG_MSG("getAlphh work on kid's nancyfront" + childNode->getNancyFrontier()->toString());
+            if ((bestChild &&
+                 childNode->getNancyFrontier()->getFHatValue() == bestFHat &&
+                 // break tie on high g
+                 childNode->getNancyFrontier()->getGValue() >
+                   bestChild->getNancyFrontier()->getGValue()) ||
+                (childNode->getNancyFrontier()->getFHatValue() < bestFHat)) {
                 bestChild = childNode;
                 bestFHat  = childNode->getNancyFrontier()->getFHatValue();
+
+                DEBUG_MSG("is best and best fhat " << bestFHat);
             }
         }
 
