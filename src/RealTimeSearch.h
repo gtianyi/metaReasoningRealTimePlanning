@@ -243,7 +243,10 @@ public:
             }
 
             assert(commitQueue.size() > 0);
-
+            if (decisionModule == "dynamicLookahead") {
+                metaReasonExpansionAlgo->increaseLookahead(lookahead *
+                                                           commitQueue.size());
+            }
             vector<string> commited;
             while (!commitQueue.empty()) {
                 auto n = commitQueue.top();
@@ -254,10 +257,6 @@ public:
                 commited.push_back(n->getState().toString());
             }
             res.committed.push_back(commited);
-
-            if (decisionModule == "dynamicLookahead") {
-                metaReasonExpansionAlgo->increaseLookahead(lookahead);
-            }
 
             // LearninH Phase
             metaReasonLearningAlgo->learn(open, closed);
