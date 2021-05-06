@@ -19,6 +19,13 @@ class Configure:
                 "one": "ONE",
                 "alltheway": "ALL",
                 "dtrts": "Our Approach",
+                # "one-fhat": "ONE",
+                # "alltheway-fhat": "ALL",
+                # "dtrts-fhat": "Our Approach",
+                # "one-astar": "ONE",
+                # "alltheway-astar": "ALL",
+                # "dtrts-astar": "Our Approach",
+                "dynamicLookahead-astar": "DynamicLookahead",
             }
         )
 
@@ -37,7 +44,7 @@ class Configure:
             "Our Approach": "limegreen",
             # "WA*-slow": "orangered",
             # "BEES-LBUG": "maroon",
-            # "BEES - EpsLocal": "deepskyblue",
+            "DynamicLookahead": "deepskyblue",
             # "DXES-0.8": "magenta",
             # "DXES": "maroon",
             # "DXES-NRE": "magenta",

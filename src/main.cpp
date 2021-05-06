@@ -28,10 +28,11 @@ nlohmann::json parseResult(const ResultContainer&      res,
     record["solution cost"]     = res.solutionCost;
     record["solution length"]   = res.solutionLength;
     record["instance"]          = args["instance"].as<std::string>();
-    record["algorithm"]         = args["alg"].as<std::string>();
-    record["lookahead"]         = args["lookahead"].as<int>();
-    record["domain"]            = args["domain"].as<std::string>();
-    record["subdomain"]         = args["subdomain"].as<std::string>();
+    record["algorithm"] =
+      args["alg"].as<std::string>() + "-" + args["expan"].as<std::string>();
+    record["lookahead"] = args["lookahead"].as<int>();
+    record["domain"]    = args["domain"].as<std::string>();
+    record["subdomain"] = args["subdomain"].as<std::string>();
 
     return record;
 }
@@ -50,12 +51,12 @@ nlohmann::json parseVisResult(const ResultContainer& res)
 }
 
 template<class Domain>
-ResultContainer startAlg(shared_ptr<Domain> domain_ptr, string decisionModule,
-                         size_t lookahead)
+ResultContainer startAlg(shared_ptr<Domain> domain_ptr, string expansionModule,
+                         string decisionModule, size_t lookahead)
 {
     shared_ptr<RealTimeSearch<Domain>> searchAlg =
-      make_shared<RealTimeSearch<Domain>>(*domain_ptr, decisionModule,
-                                          lookahead);
+      make_shared<RealTimeSearch<Domain>>(*domain_ptr, expansionModule,
+                                          decisionModule, lookahead);
 
     return searchAlg->search();
 }
@@ -78,6 +79,9 @@ int main(int argc, char** argv)
                 cxxopts::value<std::string>()->default_value("barto-bigger"));
 
     optionAdder("a,alg", "commit algorithm: one, alltheway, fhatpmr, dtrts",
+                cxxopts::value<std::string>()->default_value("risk"));
+
+    optionAdder("e,expan", "expansion algorithm: astar, fhat",
                 cxxopts::value<std::string>()->default_value("risk"));
 
     optionAdder("l,lookahead", "expansion limit",
@@ -111,6 +115,7 @@ int main(int argc, char** argv)
     auto subDomain      = args["subdomain"].as<std::string>();
     auto alg            = args["alg"].as<std::string>();
     auto lookaheadDepth = static_cast<size_t>(args["lookahead"].as<int>());
+    auto expan          = args["expan"].as<std::string>();
 
     ResultContainer res;
 
@@ -173,7 +178,7 @@ int main(int argc, char** argv)
         std::shared_ptr<GridPathfinding> world =
           std::make_shared<GridPathfinding>(cin);
 
-        res = startAlg<GridPathfinding>(world, alg, lookaheadDepth);
+        res = startAlg<GridPathfinding>(world, expan, alg, lookaheadDepth);
     } else {
         cout << "Available domains are TreeWorld, slidingTile, pancake, "
                 "racetrack, gridPathfinding"

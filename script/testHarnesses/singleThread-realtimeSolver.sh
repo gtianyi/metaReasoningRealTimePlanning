@@ -70,8 +70,10 @@ sizeOfRegularPancake="50"
 sizeOfHeavyPancake="16"
 sizeOfSumHeavyPancake="10"
 
-#realtimeSolvers=("one" "alltheway" "dtrts")
-realtimeSolvers=("dtrts")
+realtimeSolvers=("one" "alltheway" "dtrts" "dynamicLookahead")
+#realtimeSolvers=("dtrts")
+#expansionModule=("astar" "fhat")
+expansionModule=("astar")
 timeLimit=600
 memoryLimit=7
 
@@ -357,91 +359,96 @@ for curDomainId in "${!domain[@]}"; do
                 infile="${infile_path}/${infile_name}"
             fi
 
-            for solverId in "${!realtimeSolvers[@]}"; do
-
+            for solverId in "${!realtimeSolvers[@]}"; do 
                 solverName=${realtimeSolvers[$solverId]}
                 echo $solverName
 
-                solverNameInDir=$solverName
-                if [ "$algorithmNameExtension" != "NA" ]; then
-                    solverNameInDir="${solverName}-${algorithmNameExtension}"
-                fi
+                for expansionAlg in "${expansionModule[@]}"; do
+                    echo "expansionAlg $expansionAlg"
 
-                outfile_path_alg="${outfile_path/solverDir/$solverNameInDir}"
-                mkdir -p ${outfile_path_alg}
-                outfile_alg="${outfile/solverDir/$solverNameInDir}"
+                    solverNameInDir=$solverName
+                    if [ "$algorithmNameExtension" != "NA" ]; then
+                        solverNameInDir="${solverName}-${algorithmNameExtension}"
+                    fi 
 
-                executable="${research_home}/metareasoning/build_release/bin/realtimeSolver"
+                    solverNameInDir="${solverNameInDir}-${expansionAlg}"
 
-                 for lookahead in "${lookaheads[@]}"; do
-                    echo "lookahead $lookahead"
+                    outfile_path_alg="${outfile_path/solverDir/$solverNameInDir}"
+                    mkdir -p ${outfile_path_alg}
+                    outfile_alg="${outfile/solverDir/$solverNameInDir}"
 
-                    instance=$first
+                    executable="${research_home}/metareasoning/build_release/bin/realtimeSolver"
 
-                    last=$(($first + $n_of_i))
-                    while ((instance < last)); do
-                        infile_instance="${infile/instance/$instance}"
-                        infile_instance="${infile_instance/tile/slidingTile}"
-                        outfile_instance="${outfile_alg/instance/$instance}"
-                        outfile_instance="${outfile_instance/lookahead/$lookahead}"
-                        tempfile="${outfile_instance}.temp"
+                     for lookahead in "${lookaheads[@]}"; do
+                        echo "lookahead $lookahead"
 
-                        curFileName=${infile_name/instance/$instance}
+                        instance=$first
 
-                        if [ -f ${outfile_instance} ] || [ -f ${tempfile} ]; then
+                        last=$(($first + $n_of_i))
+                        while ((instance < last)); do
+                            infile_instance="${infile/instance/$instance}"
+                            infile_instance="${infile_instance/tile/slidingTile}"
+                            outfile_instance="${outfile_alg/instance/$instance}"
+                            outfile_instance="${outfile_instance/lookahead/$lookahead}"
+                            tempfile="${outfile_instance}.temp"
 
-                            let instance++
+                            curFileName=${infile_name/instance/$instance}
 
-                        else
+                            if [ -f ${outfile_instance} ] || [ -f ${tempfile} ]; then
 
-                            realSubdomain="${curSubdomain}"
-                            if [ "${curSubdomain}" == "heavy-easy" ]; then
-                                realSubdomain="heavy"
+                                let instance++
+
+                            else
+
+                                realSubdomain="${curSubdomain}"
+                                if [ "${curSubdomain}" == "heavy-easy" ]; then
+                                    realSubdomain="heavy"
+                                fi
+
+                                if [ "${curSubdomain}" == "inverse-easy" ]; then
+                                    realSubdomain="inverse"
+                                fi
+
+                                if [ "${curSubdomain}" == "reverse-easy" ]; then
+                                    realSubdomain="reverse"
+                                fi
+
+                                command="${executable} -d ${curDomain} -s ${realSubdomain} -a ${solverName} -e ${expansionAlg}\
+                                -l ${lookahead} -o ${outfile_instance} -i ${instance} -f ${heuristicType} "
+
+                                command+="< ${infile_instance}"
+
+                                echo "${command}" >${tempfile}
+
+                                executableOut=$(python $limitWrapper -c "${command}" -t $timeLimit -m $memoryLimit)
+
+                                echo "${executableOut}" >>${tempfile}
+
+                                if [ -f ${outfile_instance} ]; then
+                                    rm ${tempfile}
+                                fi
+
+                                let instance++
+
                             fi
 
-                            if [ "${curSubdomain}" == "inverse-easy" ]; then
-                                realSubdomain="inverse"
-                            fi
-
-                            if [ "${curSubdomain}" == "reverse-easy" ]; then
-                                realSubdomain="reverse"
-                            fi
-
-                            command="${executable} -d ${curDomain} -s ${realSubdomain} -a ${solverName} \
-                            -l ${lookahead} -o ${outfile_instance} -i ${instance} -f ${heuristicType} "
-
-                            command+="< ${infile_instance}"
-
-                            echo "${command}" >${tempfile}
-
-                            executableOut=$(python $limitWrapper -c "${command}" -t $timeLimit -m $memoryLimit)
-
-                            echo "${executableOut}" >>${tempfile}
-
-                            if [ -f ${outfile_instance} ]; then
-                                rm ${tempfile}
-                            fi
-
-                            let instance++
-
-                        fi
-
+                        done
                     done
+
+                    fixJson_running_flag="${research_home}/metareasoning/results/fixJson.${curDomain}.${curSubdomain}.${solverNameInDir}"
+                    if [ "${curDomain}" == "pancake" ] || [ "${curDomain}" == "racetrack" ]; then
+                        fixJson_running_flag="${fixJson_running_flag}.${heuristicType}"
+                    fi
+                    fixJsonExecutable="${research_home}/metareasoning/metaReasonRealTimePlanningCodeBase/script/fixJson.py"
+
+                    sleep 1
+
+                    if [ ! -f ${fixJson_running_flag} ]; then
+                        fixJsonOut=$(python ${fixJsonExecutable} -d ${curDomain} -s ${curSubdomain} -a ${solverNameInDir} -ht ${heuristicType})
+                        #echo "$fixJsonOut"
+                        echo "$fixJsonOut" >> ${fixJson_running_flag}
+                    fi
                 done
-
-                fixJson_running_flag="${research_home}/metareasoning/results/fixJson.${curDomain}.${curSubdomain}.${solverNameInDir}"
-                if [ "${curDomain}" == "pancake" ] || [ "${curDomain}" == "racetrack" ]; then
-                    fixJson_running_flag="${fixJson_running_flag}.${heuristicType}"
-                fi
-                fixJsonExecutable="${research_home}/metareasoning/metaReasonRealTimePlanningCodeBase/script/fixJson.py"
-
-                sleep 1
-
-                if [ ! -f ${fixJson_running_flag} ]; then
-                    fixJsonOut=$(python ${fixJsonExecutable} -d ${curDomain} -s ${curSubdomain} -a ${solverNameInDir} -ht ${heuristicType})
-                    #echo "$fixJsonOut"
-                    echo "$fixJsonOut" >> ${fixJson_running_flag}
-                fi
             done
         done
     done

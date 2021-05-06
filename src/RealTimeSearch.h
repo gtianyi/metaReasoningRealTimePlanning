@@ -29,12 +29,14 @@ public:
     typedef typename Domain::HashState Hash;
     using Node = SearchNode<Domain>;
 
-    RealTimeSearch(Domain& domain_, string decisionModule_, size_t lookahead_)
+    RealTimeSearch(Domain& domain_, string expansionModule_,
+                   string decisionModule_, size_t lookahead_)
         : domain(domain_)
         , lookahead(lookahead_)
         , decisionModule(decisionModule_)
     {
-        if (decisionModule == "one" || decisionModule == "alltheway") {
+        if (decisionModule == "one" || decisionModule == "alltheway" ||
+            decisionModule == "dynamicLookahead") {
             metaReasonDecisionAlgo =
               make_shared<MetaReasonScalarBackup<Domain, Node>>(
                 decisionModule_);
@@ -47,8 +49,18 @@ public:
             exit(1);
         }
 
-        metaReasonExpansionAlgo =
-          make_shared<MetaReasonAStar<Domain, Node>>(domain, lookahead, "f");
+        if (expansionModule_ == "astar") {
+            metaReasonExpansionAlgo =
+              make_shared<MetaReasonAStar<Domain, Node>>(domain, lookahead,
+                                                         "f");
+        } else if (expansionModule_ == "fhat") {
+            metaReasonExpansionAlgo =
+              make_shared<MetaReasonAStar<Domain, Node>>(domain, lookahead,
+                                                         "fhat");
+        } else {
+            cerr << "unknown expansion module: " << expansionModule_ << "\n";
+            exit(1);
+        }
 
         metaReasonLearningAlgo =
           make_shared<MetaReasonDijkstra<Domain, Node>>(domain);
@@ -80,7 +92,8 @@ public:
                 start = actionQueue.front();
             }
 
-            if (decisionModule == "alltheway") {
+            if (decisionModule == "alltheway" ||
+                decisionModule == "dynamicLookahead") {
                 vector<string> curPath;
                 while (actionQueue.size() > 1) {
 
@@ -154,10 +167,11 @@ public:
             // 1. allways commit one, just like old nancy code
             // 2. allways commit to frontier,  modify old nancy code
             //    to return all nodes from root to the best frontier
-            // 3. fhat-pmr: need nancy backup from all frontier and
+            // 3. dynamic fhat
+            // 4. fhat-pmr: need nancy backup from all frontier and
             //    make decision on whether to commit each prefix based
             //    on the hack rule
-            // 4. our approach: compute benefit of doing more search
+            // 5. our approach: compute benefit of doing more search
 
             // this loop should happen only once for approach 1-3
             int  continueCounter = 0;
@@ -193,7 +207,8 @@ public:
 
                 auto n = actionQueue.front();
                 actionQueue.pop();
-                if (decisionModule != "alltheway") {
+                if (decisionModule != "alltheway" &&
+                    decisionModule != "dynamicLookahead") {
                     vector<string> curPath;
                     curPath.push_back(n->getState().toString());
                     res.paths.push_back(curPath);
@@ -239,6 +254,10 @@ public:
                 commited.push_back(n->getState().toString());
             }
             res.committed.push_back(commited);
+
+            if (decisionModule == "dynamicLookahead") {
+                metaReasonExpansionAlgo->increaseLookahead(lookahead);
+            }
 
             // LearninH Phase
             metaReasonLearningAlgo->learn(open, closed);

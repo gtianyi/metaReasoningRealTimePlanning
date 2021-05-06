@@ -28,7 +28,8 @@ public:
 
         // Only move one step towards best on open
         while (goalPrime->getParent() != start) {
-            if (decisionModule == "alltheway") {
+            if (decisionModule == "alltheway" ||
+                decisionModule == "dynamicLookahead") {
                 commitedNodes.push(goalPrime);
             }
 

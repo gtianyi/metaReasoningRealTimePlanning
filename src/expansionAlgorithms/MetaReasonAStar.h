@@ -138,6 +138,8 @@ public:
         res.visited.push_back(visited);
     }
 
+    void increaseLookahead(size_t addLookahead) { lookahead += addLookahead; }
+
 private:
     void sortOpen(PriorityQueue<shared_ptr<Node>>& open)
     {
