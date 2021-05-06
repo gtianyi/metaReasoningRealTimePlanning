@@ -119,15 +119,15 @@ public:
                 // Cost epsD = (1 + bestChildNode->getDValue()) -
                 // cur->getDValue();
                 Cost epsD =
-                  (1 + domain.heuristicFunction(bestChildNode->getState())) -
-                  domain.heuristicFunction(cur->getState());
+                  (1 + domain.distance(bestChildNode->getState())) -
+                  domain.distance(cur->getState());
                 // DEBUG_MSG("err" + my_to_string(epsD));
                 // DEBUG_MSG("child" + bestChildNode->toString());
                 // DEBUG_MSG("cur" + cur->toString());
                 Cost epsH =
                   (domain.getEdgeCost(bestChildNode->getState()) +
-                   domain.heuristicFunction(bestChildNode->getState())) -
-                  domain.heuristicFunction(cur->getState());
+                   domain.heuristic(bestChildNode->getState())) -
+                  domain.heuristic(cur->getState());
 
                 for (auto child : childrenNodes) {
                     child->pushPathBasedEpsilons(epsH, epsD);
