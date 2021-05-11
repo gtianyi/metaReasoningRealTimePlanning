@@ -31,7 +31,8 @@ n_of_i=1
 
 #domain=("tile" "pancake" "racetrack" "vacuumworld")
 #domain=("tile" "pancake" "racetrack")
-domain=("gridPathfinding")
+#domain=("gridPathfinding")
+domain=("gridPathfindingWithTarPit")
 
 subdomain=("NA")
 #subdomainTile=("uniform" "heavy" "inverse" "heavy-easy" "reverse-easy" "sqrt")
@@ -44,6 +45,9 @@ subdomainVacuumworld=("uniform" "heavy-easy")
 subdomainRacetrack=("barto-bigger" "hansen-bigger")
 subdomainGridPathfinding=("goalObstacleField" "startObstacleField" "uniformObstacleField")
 #subdomainGridPathfinding=("goalObstacleField")
+#subdomainGridPathfindingWithTarPit=("goalObstacleField" "startObstacleField" "uniformObstacleField")
+#subdomainGridPathfindingWithTarPit=("goalObstacle_big_checkerboard" "startObstacle_big_checkerboard" "uniformObstacle_big_checkerboard")
+subdomainGridPathfindingWithTarPit=("mixed_big_checkerboard")
 
 heuristicTypes=("NA")
 heuristicTypePancake=("gap" "gapm2")
@@ -52,7 +56,7 @@ heuristicTypeRacetrack=("dijkstra" "euclidean")
 #lookaheads=(3 10 30 100 300 1000)
 #lookaheads=(10)
 #lookaheads=(3 10 30 100 300 1000)
-lookaheads=(10 30 100 300 1000)
+lookaheads=(4 10 30 100 300 1000)
 
 n_of_i_Tile=100
 #n_of_i_Tile=10
@@ -63,6 +67,7 @@ n_of_i_Racetrack=25
 #n_of_i_Racetrack=1
 n_of_i_Vacuumworld=60
 n_of_i_GridPathfinding=100
+n_of_i_GridPathfindingWithTarPit=100
 #n_of_i_GridPathfinding=1
 
 size="4"
@@ -73,7 +78,8 @@ sizeOfSumHeavyPancake="10"
 realtimeSolvers=("one" "alltheway" "dtrts" "dynamicLookahead")
 #realtimeSolvers=("dtrts")
 #expansionModule=("astar" "fhat")
-expansionModule=("astar")
+#expansionModule=("astar")
+expansionModule=("fhat")
 timeLimit=600
 memoryLimit=7
 
@@ -263,6 +269,11 @@ for curDomainId in "${!domain[@]}"; do
         n_of_i=$n_of_i_GridPathfinding
     fi
 
+    if [ "${curDomain}" == "gridPathfindingWithTarPit" ]; then
+        subdomain=("${subdomainGridPathfindingWithTarPit[@]}")
+        n_of_i=$n_of_i_GridPathfindingWithTarPit
+    fi
+
     echo "subdomain ${subdomain[*]}"
     echo "n_of_i ${n_of_i}"
 
@@ -355,6 +366,15 @@ for curDomainId in "${!domain[@]}"; do
                 infile_path="${research_home}/realtime-nancy/worlds/gridPathfinding/${curSubdomain}"
 
                 infile_name="instance.gp"
+                outfile="${outfile_path}/LA-lookahead-instance.json"
+                infile="${infile_path}/${infile_name}"
+            fi
+
+            if [ "${curDomain}" == "gridPathfindingWithTarPit" ]; then
+
+                infile_path="${research_home}/realtime-nancy/worlds/gridPathfindingWithTarPit/${curSubdomain}"
+
+                infile_name="instance.tp"
                 outfile="${outfile_path}/LA-lookahead-instance.json"
                 infile="${infile_path}/${infile_name}"
             fi

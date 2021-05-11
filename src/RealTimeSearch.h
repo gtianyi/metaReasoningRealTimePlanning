@@ -100,9 +100,8 @@ public:
                     start = actionQueue.front();
                     actionQueue.pop();
                     curPath.push_back(start->getState().toString());
-                    // TODO cost can not be computed here
-                    // res.solutionCost += n->getGValue();
                     res.solutionLength += 1;
+                    res.solutionCost += domain.getEdgeCost(start->getState());
 
                     // lsslrta* try to optimize cpu time,
                     // so even if more than one action are commited, it
@@ -141,8 +140,8 @@ public:
                     res.isKeepThinkingFlags.push_back(false);
                     vector<string> committed;
                     res.committed.push_back(committed);
-                    // TODO cost can not be computed here
-                    // res.solutionCost += n->getGValue();
+                    res.solutionCost +=
+                      domain.getEdgeCost(curAction->getState());
                     res.solutionLength += 1;
 
                     // lsslrta* try to optimize cpu time,
@@ -215,8 +214,8 @@ public:
                     res.isKeepThinkingFlags.push_back(keepThinking);
                     keepThinking = true;
                 }
-                // TODO cost can not be computed here
-                // res.solutionCost += n->getGValue();
+
+                res.solutionCost += domain.getEdgeCost(n->getState());
                 res.solutionLength += 1;
                 ++continueCounter;
                 if (commitQueue.empty() && !actionQueue.empty()) {

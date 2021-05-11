@@ -16,16 +16,17 @@ class Configure:
 
         self.algorithms = OrderedDict(
             {
-                "one": "ONE",
-                "alltheway": "ALL",
-                "dtrts": "Our Approach",
-                # "one-fhat": "ONE",
-                # "alltheway-fhat": "ALL",
-                # "dtrts-fhat": "Our Approach",
+                # "one": "ONE",
+                # "alltheway": "ALL",
+                # "dtrts": "Our Approach",
+                "one-fhat": "ONE",
+                "alltheway-fhat": "ALL",
+                "dtrts-fhat": "Our Approach",
                 # "one-astar": "ONE",
                 # "alltheway-astar": "ALL",
                 # "dtrts-astar": "Our Approach",
-                "dynamicLookahead-astar": "DynamicLookahead",
+                # "dynamicLookahead-astar": "DynamicLookahead",
+                "dynamicLookahead-fhat": "DynamicFhat",
             }
         )
 
@@ -44,7 +45,8 @@ class Configure:
             "Our Approach": "limegreen",
             # "WA*-slow": "orangered",
             # "BEES-LBUG": "maroon",
-            "DynamicLookahead": "deepskyblue",
+            # "DynamicLookahead": "deepskyblue",
+            "DynamicFhat": "deepskyblue",
             # "DXES-0.8": "magenta",
             # "DXES": "maroon",
             # "DXES-NRE": "magenta",
@@ -85,7 +87,8 @@ class Configure:
 
         self.totalInstance = {"tile": "100", "pancake": "100",
                               "racetrack": "25", "vacuumworld": "60",
-                              "gridPathfinding": "100"}
+                              "gridPathfinding": "100",
+                              "gridPathfindingWithTarPit": "100"}
 
         self.domainLookaheadConfig = {
                                    "avaiableLookahead": {
@@ -102,6 +105,16 @@ class Configure:
                                            "goalObstacleField": [10, 30, 100, 300, 1000],
                                            "startObstacleField": [10, 30, 100, 300, 1000],
                                            "uniformObstacleField": [10, 30, 100, 300, 1000],
+                                       },
+                                       "gridPathfindingWithTarPit": {
+                                           "goalObstacleField": [10, 30, 100, 300, 1000],
+                                           "startObstacleField": [10, 30, 100, 300, 1000],
+                                           "uniformObstacleField": [10, 30, 100, 300, 1000],
+                                           "goalObstacle_big_checkerboard": [4, 10, 30, 100, 300, 1000],
+                                           "startObstacle_big_checkerboard": [4, 10, 30, 100, 300, 1000],
+                                           "uniformObstacle_big_checkerboard": [4, 10, 30, 100, 300, 1000],
+                                           "mixed_big_checkerboard": [4, 10, 30, 100, 300, 1000],
+
                                        }
                                     },
                                    }

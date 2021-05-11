@@ -21,8 +21,8 @@ struct ResultContainer {
 
     ResultContainer() {
         solutionFound = false;
-        solutionCost = -1;
-        solutionLength = -1;
+        solutionCost = 0;
+        solutionLength = 0;
         nodesGenerated = 0;
         nodesExpanded = 0;
         GATnodesExpanded = 0;

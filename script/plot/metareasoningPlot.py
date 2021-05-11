@@ -56,8 +56,8 @@ def parseArugments():
         '-b',
         action='store',
         dest='lookaheadStart',
-        help='lookahead start: eg anything above this value,(default: 10)',
-        default='10')
+        help='lookahead start: eg anything above this value,(default: 4)',
+        default='4')
 
     parser.add_argument(
         '-e',
@@ -411,6 +411,7 @@ def readData(args, algorithms, lookaheadConfig):
     nodeExpanded = []
     nodeGenerated = []
     solutionLength = []
+    solutionCost = []
 
     print("reading in data...")
 
@@ -465,6 +466,7 @@ def readData(args, algorithms, lookaheadConfig):
                     nodeExpanded.append(resultData["node expanded"])
                     nodeGenerated.append(resultData["node generated"])
                     solutionLength.append(resultData["solution length"])
+                    solutionCost.append(resultData["solution cost"])
 
             except JSONDecodeError as e:
                 print("json error:", e)
@@ -479,6 +481,7 @@ def readData(args, algorithms, lookaheadConfig):
         "nodeExp": nodeExpanded,
         "gatNodeExpanded": gatNodeExpanded,
         "solutionLength": solutionLength,
+        "solutionCost": solutionCost,
     })
 
     # print(rawdf)
@@ -492,7 +495,7 @@ def getRatioDF(rawdf, args):
 
     worestRatio, worestID = 0, -1
     for _, row in rawdf.iterrows():
-        ratio = float(row["solutionLength"]) / \
+        ratio = float(row["solutionCost"]) / \
             float(instanceOpt[row["instance"]])
         gatRatio.append(ratio)
         if row["Algorithm"] == "Our Approach" and row["lookahead"] == 10:
@@ -513,7 +516,7 @@ def getOptSol(args):
     for file in os.listdir(inPath):
         instanceID = file[:-3]
         f = open(inPath+file)
-        instanceOpt[instanceID] = f.readlines()[-1]
+        instanceOpt[instanceID] = f.readlines()[-2]
 
     return instanceOpt
 
@@ -648,6 +651,20 @@ def createTitle(args):
                                  "Handcrafted pathfinding - Obstacle Field Near Start",
                                  "uniformObstacleField":
                                  "Handcrafted pathfinding - Uniform Obstacle Field", },
+             "gridPathfindingWithTarPit": {"goalObstacleField":
+                                 "Handcrafted pathfinding With Tar Pit - Obstacle Field Near Goal",
+                                 "startObstacleField":
+                                 "Handcrafted pathfinding With Tar Pit - Obstacle Field Near Start",
+                                 "uniformObstacleField":
+                                 "Handcrafted pathfinding With Tar Pit - Uniform Obstacle Field", 
+                                 "goalObstacle_big_checkerboard":
+                                 "Handcrafted pathfinding With Tar Pit - Tar Pit Near Goal",
+                                 "startObstacle_big_checkerboard":
+                                 "Handcrafted pathfinding With Tar Pit - Tar Pit Near Start",
+                                 "uniformObstacle_big_checkerboard":
+                                 "Handcrafted pathfinding With Tar Pit - Uniform Tar Pit ",
+                                 "mixed_big_checkerboard":
+                                 "Handcrafted pathfinding - Tar Pit Near Star and Obstacle Near Goal",         },
              }
 
     return title[args.domain][args.subdomain]
