@@ -110,6 +110,7 @@ public:
                     res.GATnodesExpanded += lookahead;
 
                     if (domain.isGoal(start->getState())) {
+                        res.solutionFound = true;
                         return res;
                     }
                 }
@@ -183,7 +184,7 @@ public:
                 metaReasonExpansionAlgo->expand(open, closed,
                                                 duplicateDetection, res);
                 // deadend
-                if (open.empty()) {
+                if (open.empty() && !res.solutionFound) {
                     break;
                 }
 
@@ -225,7 +226,7 @@ public:
             }
 
             // deadend
-            if (open.empty()) {
+            if (open.empty() && !res.solutionFound) {
                 DEBUG_MSG("deadend!");
                 break;
             }

@@ -664,7 +664,12 @@ def createTitle(args):
                                  "uniformObstacle_big_checkerboard":
                                  "Handcrafted pathfinding With Tar Pit - Uniform Tar Pit ",
                                  "mixed_big_checkerboard":
-                                 "Handcrafted pathfinding - Tar Pit Near Star and Obstacle Near Goal",         },
+                                 "Handcrafted pathfinding - Tar Pit Near Star and Obstacle Near Goal",
+                                 "mixed_big_checkerboard_corridor":
+                                 "Handcrafted pathfinding - Tar Pit Near Star and Corridor Near Goal",
+                                 "only_corridor_big_checkerboard":
+                                 "Handcrafted pathfinding - Corridor Near Goal",
+                                           },
              }
 
     return title[args.domain][args.subdomain]

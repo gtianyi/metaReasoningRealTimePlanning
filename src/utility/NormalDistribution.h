@@ -10,6 +10,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "debug.h"
+
 using namespace std;
 
 #define M_PI 3.14159265358979323846     /* pi */
@@ -50,6 +52,10 @@ public:
 
     double getMean() const { return mean; }
     double getVar() const { return var; }
+
+    string toString(){
+        return " var "+my_to_string(var,6)+" mean "+my_to_string(mean,6);
+    }
 
     NormalDistribution& operator=(const NormalDistribution& rhs)
     {

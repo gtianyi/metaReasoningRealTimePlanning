@@ -68,6 +68,7 @@ public:
             // Check if current node is goal
             if (domain.isGoal(cur->getState())) {
                 DEBUG_MSG("reach goal in expansion");
+                res.solutionFound = true;
                 res.visited.push_back(visited);
                 return;
             }

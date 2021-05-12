@@ -179,7 +179,7 @@ protected:
 
         DEBUG_MSG("uCMT " + to_string(utilityOfCommit) + " uNCMT " +
                   to_string(utilityOfNotCommit));
-        return utilityOfCommit > utilityOfNotCommit;
+        return utilityOfCommit < utilityOfNotCommit;
     }
 
     double getPChooseAlpha(shared_ptr<Node> alpha, shared_ptr<Node> beta,
@@ -197,19 +197,24 @@ protected:
         auto alphabeta  = getBeta(alpha);
 
         if (alphaalpha == nullptr && alphabeta == nullptr) {
-            // DEBUG_MSG("no kid for alpha");
+             DEBUG_MSG("no alphaAlpha and alphaBeta");
             return alpha->getNancyFrontier()->getFHatValue();
         }
 
         if (alphabeta == nullptr) {
-            // DEBUG_MSG("no kid for beta");
+             DEBUG_MSG("no alphaBeta");
             return alphaalpha->getNancyFrontier()->getFHatValue();
         }
+
+        DEBUG_MSG("aa "<<alphaalpha->toString());
+        DEBUG_MSG("ab "<<alphabeta->toString());
 
         auto pAlphaalpha =
           distributionAfterSearch(alphaalpha, (timeStep + 1) / 2.0);
         auto pAlphabeta =
           distributionAfterSearch(alphabeta, (timeStep + 1) / 2.0);
+        DEBUG_MSG("baa"<<pAlphaalpha.toString());
+        DEBUG_MSG("bab"<<pAlphabeta.toString());
 
         return expectedMinimum(pAlphaalpha, pAlphabeta);
     }
@@ -261,7 +266,7 @@ protected:
         shared_ptr<Node> bestChild;
         Cost             bestFHat = numeric_limits<double>::infinity();
 
-        DEBUG_MSG("getAlphh on state " + node->toString());
+        //DEBUG_MSG("getAlph on state " + node->toString());
         for (State child : children) {
             auto it = closed.find(child);
 
@@ -275,8 +280,8 @@ protected:
 
             auto childNode = it->second;
 
-            DEBUG_MSG("getAlphh work on kid " + childNode->toString());
-            DEBUG_MSG("getAlphh work on kid's nancyfront" + childNode->getNancyFrontier()->toString());
+            //DEBUG_MSG("getAlphh work on kid " + childNode->toString());
+            //DEBUG_MSG("getAlphh work on kid's nancyfront" + childNode->getNancyFrontier()->toString());
             if ((bestChild &&
                  childNode->getNancyFrontier()->getFHatValue() == bestFHat &&
                  // break tie on high g
@@ -286,7 +291,7 @@ protected:
                 bestChild = childNode;
                 bestFHat  = childNode->getNancyFrontier()->getFHatValue();
 
-                DEBUG_MSG("is best and best fhat " << bestFHat);
+                //DEBUG_MSG("is best and best fhat " << bestFHat);
             }
         }
 
@@ -366,6 +371,11 @@ protected:
     double expectedMinimum(const NormalDistribution& d1,
                            const NormalDistribution& d2)
     {
+
+        if (d1.getVar() < 0.01 && d2.getVar() < 0.01){
+            return min(d1.getMean(), d2.getMean());
+        }
+
         auto theta = sqrt(d1.getVar() + d2.getVar());
 
         auto x = (d1.getMean() - d2.getMean()) / theta;
