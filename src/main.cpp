@@ -162,11 +162,11 @@ int main(int argc, char** argv)
         // std::make_shared<RaceTrack>(map, cin);
 
         /*res = startAlg<RaceTrack>(world, alg, lookaheadDepth);*/
-    } else if (domain == "gridPathfinding") {
-        std::shared_ptr<GridPathfinding> world =
-          std::make_shared<GridPathfinding>(cin);
+    /*} else if (domain == "gridPathfinding") {*/
+        //std::shared_ptr<GridPathfinding> world =
+          //std::make_shared<GridPathfinding>(cin);
 
-        res = startAlg<GridPathfinding>(world, expan, alg, lookaheadDepth);
+        //res = startAlg<GridPathfinding>(world, expan, alg, lookaheadDepth);
     }  else if (domain == "gridPathfindingWithTarPit") {
         std::shared_ptr<GridPathfindingWithTarPit> world =
           std::make_shared<GridPathfindingWithTarPit>(cin);

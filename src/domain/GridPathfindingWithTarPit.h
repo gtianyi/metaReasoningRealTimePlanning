@@ -293,6 +293,30 @@ public:
 
     string getSubDomainName() const { return ""; }
 
+    Cost getGlobalEpsilonH() const { return curEpsilonH; }
+    Cost getGlobalEpsilonD() const { return curEpsilonD; }
+
+    void pushGlobalEpsilons(double epsH_, double epsD_)
+    {
+        incExpansionCounter();
+        pushEpsilonHGlobal(epsH_);
+        pushEpsilonDGlobal(epsD_);
+    }
+
+    void resetStartEpsilons(){
+        //curEpsilonH = 0;
+        //curEpsilonD = 0;
+        //expansionCounter = 0;
+        /*if (curEpsilonH > 50){*/
+            //curEpsilonH = 40;
+        //}
+        //if (curEpsilonD > 50){
+            //curEpsilonD = 40;
+        //}
+
+        //expansionCounter = 1;
+    }
+
 private:
     void parseInput(std::istream& input)
     {
@@ -383,6 +407,33 @@ private:
         return tarPitCells.find(loc) != tarPitCells.end();
     }
 
+    void incExpansionCounter() { ++expansionCounter; }
+
+    void pushEpsilonHGlobal(double eps)
+    {
+        if (expansionCounter < 5) {
+            curEpsilonH = 0;
+            return;
+        }
+
+        // DEBUG_MSG("epsh " + to_string(eps));
+        // DEBUG_MSG("expCounter " + to_string(expansionCounter));
+
+        curEpsilonH -= curEpsilonH / expansionCounter;
+        curEpsilonH += eps / expansionCounter;
+    }
+
+    void pushEpsilonDGlobal(double eps)
+    {
+        if (expansionCounter < 5) {
+            curEpsilonD = 0;
+            return;
+        }
+
+        curEpsilonD -= curEpsilonD / expansionCounter;
+        curEpsilonD += eps / expansionCounter;
+    }
+
     std::unordered_set<Location, pair_hash> blockedCells;
     std::unordered_set<Location, pair_hash> tarPitCells;
     double                                  tarPitCost;
@@ -403,4 +454,8 @@ private:
 
     size_t goalX;
     size_t goalY;
+
+    double       curEpsilonH;
+    double       curEpsilonD;
+    unsigned int expansionCounter;
 };

@@ -52,12 +52,15 @@ public:
     State                          getState() const { return stateRep; }
     shared_ptr<SearchNode<Domain>> getParent() const { return parent; }
 
-    Cost         getPathBasedEpsilonH() const { return curEpsilonH; }
-    Cost         getPathBasedEpsilonD() const { return curEpsilonD; }
-    unsigned int getPathBasedExpansionCounter() const
-    {
-        return expansionCounter;
-    }
+    //Cost         getPathBasedEpsilonH() const { return curEpsilonH; }
+    //Cost         getPathBasedEpsilonD() const { return curEpsilonD; }
+    
+    Cost         getEpsilonH() const { return curEpsilonH; }
+    Cost         getEpsilonD() const { return curEpsilonD; }
+    /*unsigned int getPathBasedExpansionCounter() const*/
+    //{
+        //return expansionCounter;
+    /*}*/
 
     void setHValue(Cost val) { h = val; }
     void setGValue(Cost val) { g = val; }
@@ -88,39 +91,39 @@ public:
         startEpsilonH = curEpsilonH;
     }
 
-    void pushPathBasedEpsilons(double epsH_, double epsD_)
-    {
-        incExpansionCounter();
-        pushEpsilonHPathBased(epsH_);
-        pushEpsilonDPathBased(epsD_);
-    }
+    /*void pushPathBasedEpsilons(double epsH_, double epsD_)*/
+    //{
+        //incExpansionCounter();
+        //pushEpsilonHPathBased(epsH_);
+        //pushEpsilonDPathBased(epsD_);
+    /*}*/
 
-    void incExpansionCounter() { ++expansionCounter; }
+    /*void incExpansionCounter() { ++expansionCounter; }*/
 
-    void pushEpsilonHPathBased(double eps)
-    {
-        if (expansionCounter < 5) {
-            curEpsilonH = startEpsilonH;
-            return;
-        }
+    //void pushEpsilonHPathBased(double eps)
+    //{
+        //if (expansionCounter < 5) {
+            //curEpsilonH = startEpsilonH;
+            //return;
+        //}
 
-        // DEBUG_MSG("epsh " + to_string(eps));
-        // DEBUG_MSG("expCounter " + to_string(expansionCounter));
+        //// DEBUG_MSG("epsh " + to_string(eps));
+        //// DEBUG_MSG("expCounter " + to_string(expansionCounter));
 
-        curEpsilonH -= curEpsilonH / expansionCounter;
-        curEpsilonH += eps / expansionCounter;
-    }
+        //curEpsilonH -= curEpsilonH / expansionCounter;
+        //curEpsilonH += eps / expansionCounter;
+    //}
 
-    void pushEpsilonDPathBased(double eps)
-    {
-        if (expansionCounter < 5) {
-            curEpsilonD = startEpsilonD;
-            return;
-        }
+    //void pushEpsilonDPathBased(double eps)
+    //{
+        //if (expansionCounter < 5) {
+            //curEpsilonD = startEpsilonD;
+            //return;
+        //}
 
-        curEpsilonD -= curEpsilonD / expansionCounter;
-        curEpsilonD += eps / expansionCounter;
-    }
+        //curEpsilonD -= curEpsilonD / expansionCounter;
+        //curEpsilonD += eps / expansionCounter;
+    /*}*/
 
     SearchNode<Domain>(Cost g_, Cost h_, Cost d_, Cost derr_, Cost epsH_,
                        Cost epsD_, unsigned int expansionCounter_, State state_,
@@ -150,8 +153,8 @@ public:
         str += "h: " + my_to_string(getHValue()) + ",";
         str += "derr: " + my_to_string(getDErrValue()) + ",";
         str += "d: " + my_to_string(getDValue()) + ",";
-        str += "epsilon-h: " + my_to_string(getPathBasedEpsilonH()) + ",";
-        str += "epsilon-d: " + my_to_string(getPathBasedEpsilonD()) + ",";
+        str += "epsilon-h: " + my_to_string(getEpsilonH()) + ",";
+        str += "epsilon-d: " + my_to_string(getEpsilonD()) + ",";
         str += "f-hat: " + my_to_string(getFHatValue()) + ",";
         str += "d-hat: " + my_to_string(getDHatValue()) + ",";
         str += "h-hat: " + my_to_string(getHHatValue()) + ",";

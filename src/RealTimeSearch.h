@@ -288,8 +288,10 @@ private:
                     it->second->setHValue(node->getHValue());
                     it->second->setDValue(node->getDValue());
                     it->second->setDErrValue(node->getDErrValue());
-                    it->second->setEpsilonH(node->getPathBasedEpsilonH());
-                    it->second->setEpsilonD(node->getPathBasedEpsilonD());
+                    //it->second->setEpsilonH(node->getPathBasedEpsilonH());
+                    it->second->setEpsilonH(node->getEpsilonH());
+                    //it->second->setEpsilonD(node->getPathBasedEpsilonD());
+                    it->second->setEpsilonD(node->getEpsilonD());
                     it->second->setState(node->getState());
                     open.update(it->second);
                 }
@@ -303,8 +305,11 @@ private:
                     it->second->setHValue(node->getHValue());
                     it->second->setDValue(node->getDValue());
                     it->second->setDErrValue(node->getDErrValue());
-                    it->second->setEpsilonH(node->getPathBasedEpsilonH());
-                    it->second->setEpsilonD(node->getPathBasedEpsilonD());
+                    //it->second->setDErrValue(node->getDErrValue());
+                    //it->second->setEpsilonH(node->getPathBasedEpsilonH());
+                    it->second->setEpsilonH(node->getEpsilonH());
+                    //it->second->setEpsilonD(node->getPathBasedEpsilonD());
+                    it->second->setEpsilonD(node->getEpsilonD());
                     it->second->setState(node->getState());
                     it->second->reOpen();
                     open.push(it->second);
@@ -322,7 +327,8 @@ private:
         // mark this node as the start of the current search (to
         // prevent state pruning based on label)
         start->markStart();
-        start->resetStartEpsilons();
+        //start->resetStartEpsilons();
+        domain.resetStartEpsilons();
 
         // Empty OPEN and CLOSED
         open.clear();

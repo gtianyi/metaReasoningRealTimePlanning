@@ -52,12 +52,14 @@ public:
             debugStr += "h: " + my_to_string(cur->getHValue()) + ",";
             debugStr += "f: " + my_to_string(cur->getFValue()) + ",";
             debugStr +=
-              "epsH: " + my_to_string(cur->getPathBasedEpsilonH()) + ",";
+              //"epsH: " + my_to_string(cur->getPathBasedEpsilonH()) + ",";
+              "epsH: " + my_to_string(cur->getEpsilonH()) + ",";
             debugStr +=
-              "epsD: " + my_to_string(cur->getPathBasedEpsilonD()) + ",";
-            debugStr +=
-              "epsCounter: " + to_string(cur->getPathBasedExpansionCounter()) +
-              ",";
+              //"epsD: " + my_to_string(cur->getPathBasedEpsilonD()) + ",";
+              "epsD: " + my_to_string(cur->getEpsilonD()) + ",";
+            //debugStr +=
+              //"epsCounter: " + to_string(cur->getPathBasedExpansionCounter()) +
+              //",";
             debugStr += "expansion: " + to_string(expansions) + "}";
 
             // DEBUG_MSG(debugStr);
@@ -96,9 +98,9 @@ public:
                 shared_ptr<Node> childNode = make_shared<Node>(
                   cur->getGValue() + domain.getEdgeCost(child),
                   domain.heuristic(child), domain.distance(child),
-                  domain.distanceErr(child), cur->getPathBasedEpsilonH(),
-                  cur->getPathBasedEpsilonD(),
-                  cur->getPathBasedExpansionCounter(), child, cur);
+                  domain.distanceErr(child), domain.getGlobalEpsilonH(),
+                  domain.getGlobalEpsilonD(),
+                  0, child, cur);
 
                 bool dup = duplicateDetection(childNode, closed, open);
 
@@ -130,9 +132,10 @@ public:
                    domain.heuristic(bestChildNode->getState())) -
                   domain.heuristic(cur->getState());
 
-                for (auto child : childrenNodes) {
-                    child->pushPathBasedEpsilons(epsH, epsD);
-                }
+                /*for (auto child : childrenNodes) {*/
+                    //child->pushPathBasedEpsilons(epsH, epsD);
+                /*}*/
+                domain.pushGlobalEpsilons(epsH, epsD);
             }
         }
 

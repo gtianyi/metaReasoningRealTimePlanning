@@ -70,8 +70,10 @@ public:
                     it->second->setDValue(domain.distance(s));
                     it->second->setDErrValue(domain.distanceErr(s));
                     it->second->setHValue(domain.heuristic(s));
-                    it->second->setEpsilonH(cur->getPathBasedEpsilonH());
-                    it->second->setEpsilonD(cur->getPathBasedEpsilonD());
+                    //it->second->setEpsilonH(cur->getPathBasedEpsilonH());
+                    it->second->setEpsilonH(cur->getEpsilonH());
+                    //it->second->setEpsilonD(cur->getPathBasedEpsilonD());
+                    it->second->setEpsilonD(cur->getEpsilonD());
 
                     if (open.find(it->second) == open.end()) {
                         open.push(it->second);
