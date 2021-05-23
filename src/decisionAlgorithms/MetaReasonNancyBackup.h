@@ -179,8 +179,7 @@ protected:
 
         DEBUG_MSG("uCMT " + to_string(utilityOfCommit) + " uNCMT " +
                   to_string(utilityOfNotCommit));
-        return utilityOfCommit < utilityOfNotCommit &&
-               domain.getGlobalEpsilonH() < 10;
+        return utilityOfCommit > utilityOfNotCommit;
     }
 
     double getPChooseAlpha(shared_ptr<Node> alpha, shared_ptr<Node> beta,
