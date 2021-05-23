@@ -118,7 +118,7 @@ protected:
                             stack<shared_ptr<Node>>& commitedNodes)
     {
         auto cur = start;
-        int  t   = 0;
+        int  t   = 1;
 
         stack<shared_ptr<Node>> reverseOrderedCommitedNodes;
 
