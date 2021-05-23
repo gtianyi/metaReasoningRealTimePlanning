@@ -661,10 +661,13 @@ def createTitle(args):
                                  "Handcrafted pathfinding With Tar Pit - Tar Pit Near Goal",
                                  "startObstacle_big_checkerboard":
                                  "Handcrafted pathfinding With Tar Pit - Tar Pit Near Start",
+                                 "startObsAndGoalObs_big_checkerboard":
+                                 "Handcrafted pathfinding With Tar Pit - Tar Pit Near Start And Goal",
                                  "uniformObstacle_big_checkerboard":
                                  "Handcrafted pathfinding With Tar Pit - Uniform Tar Pit ",
                                  "mixed_big_checkerboard":
                                  "Handcrafted pathfinding - Tar Pit Near Star and Obstacle Near Goal",         },
+
              }
 
     return title[args.domain][args.subdomain]
