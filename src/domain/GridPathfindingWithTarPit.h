@@ -245,7 +245,8 @@ public:
             return 0;
         }
         auto parentLoc = getParentLocation(state);
-        if (isTarPit(parentLoc)) {
+        if (isTarPit(parentLoc) &&
+            !isTarPit(Location(state.getX(), state.getY()))) {
             return tarPitCost;
         }
         return 1;
