@@ -115,6 +115,7 @@ class Configure:
                                            "uniformObstacle_big_checkerboard": [4, 10, 30, 100, 300, 1000],
                                            "mixed_big_checkerboard": [4, 10, 30, 100, 300, 1000],
                                            "startObsAndGoalObs_big_checkerboard": [4, 10, 30, 100, 300, 1000],
+                                           "mixed_big_checkerboard_corridor": [4, 10, 30, 100, 300, 1000],
                                        }
                                     },
                                    }
