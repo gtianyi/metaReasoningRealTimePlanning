@@ -40,7 +40,7 @@ public:
             metaReasonDecisionAlgo =
               make_shared<MetaReasonScalarBackup<Domain, Node>>(
                 decisionModule_);
-        } else if (decisionModule == "dtrts") {
+        } else if (decisionModule == "dtrts" || decisionModule == "dydtrts") {
             metaReasonDecisionAlgo =
               make_shared<MetaReasonNancyBackup<Domain, Node>>(
                 decisionModule_, domain, lookahead);
@@ -93,7 +93,8 @@ public:
             }
 
             if (decisionModule == "alltheway" ||
-                decisionModule == "dynamicLookahead") {
+                decisionModule == "dynamicLookahead" ||
+                decisionModule == "dydtrts") {
                 vector<string> curPath;
                 while (actionQueue.size() > 1) {
 
@@ -207,7 +208,8 @@ public:
                 auto n = actionQueue.front();
                 actionQueue.pop();
                 if (decisionModule != "alltheway" &&
-                    decisionModule != "dynamicLookahead") {
+                    decisionModule != "dynamicLookahead" &&
+                    decisionModule != "dydtrts") {
                     vector<string> curPath;
                     curPath.push_back(n->getState().toString());
                     res.paths.push_back(curPath);
@@ -242,7 +244,8 @@ public:
             }
 
             assert(commitQueue.size() > 0);
-            if (decisionModule == "dynamicLookahead") {
+            if (decisionModule == "dynamicLookahead" ||
+                decisionModule == "dydtrts") {
                 metaReasonExpansionAlgo->increaseLookahead(lookahead *
                                                            commitQueue.size());
             }
