@@ -47,7 +47,8 @@ subdomainGridPathfinding=("goalObstacleField" "startObstacleField" "uniformObsta
 #subdomainGridPathfinding=("goalObstacleField")
 #subdomainGridPathfindingWithTarPit=("goalObstacleField" "startObstacleField" "uniformObstacleField")
 #subdomainGridPathfindingWithTarPit=("goalObstacle_big_checkerboard" "startObstacle_big_checkerboard" "uniformObstacle_big_checkerboard")
-subdomainGridPathfindingWithTarPit=("startObstacle_big_checkerboard")
+#subdomainGridPathfindingWithTarPit=("startObstacle_big_checkerboard")
+subdomainGridPathfindingWithTarPit=("only_corridor_big_checkerboard")
 #subdomainGridPathfindingWithTarPit=("mixed_big_checkerboard_corridor")
 
 heuristicTypes=("NA")
@@ -76,9 +77,9 @@ sizeOfRegularPancake="50"
 sizeOfHeavyPancake="16"
 sizeOfSumHeavyPancake="10"
 
-#realtimeSolvers=("one" "alltheway" "dtrts" "dynamicLookahead")
+realtimeSolvers=("one" "alltheway" "dtrts" "dynamicLookahead" "dydtrts")
 #realtimeSolvers=("dtrts")
-realtimeSolvers=("dydtrts")
+#realtimeSolvers=("dydtrts")
 #expansionModule=("astar" "fhat")
 #expansionModule=("astar")
 expansionModule=("fhat")

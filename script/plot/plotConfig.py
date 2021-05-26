@@ -19,39 +19,55 @@ class Configure:
                 # "one": "ONE",
                 # "alltheway": "ALL",
                 # "dtrts": "Our Approach",
-                "one-fhat": "ONE",
-                "alltheway-fhat": "ALL",
-                "dtrts-fhat": "Our Approach",
-                "dydtrts-fhat": "Our Approach DY",
+                "one-fhat": "LSS-LRTA*(ONE)",
+                "alltheway-fhat": "LSS-LRTA*(ALL)",
+                # "dtrts-fhat": "Our Approach",
+                "dydtrts-fhat": "FACS",
                 # "one-astar": "ONE",
                 # "alltheway-astar": "ALL",
                 # "dtrts-astar": "Our Approach",
                 # "dynamicLookahead-astar": "DynamicLookahead",
-                "dynamicLookahead-fhat": "DynamicFhat",
+                "dynamicLookahead-fhat": r"Dynamic $\widehat{\mathrm{f}}$",
             }
         )
 
         self.algorithmOrder = [self.algorithms[key] for key in self.algorithms]
 
-        self.markers = [
-        "o", "v", "s", "<", "p", "h", "^", "D", "X", ">", "o", "v", "s", "<",
-        "p", "h", "^", "D", "X", ">"
-        ]
+        # self.markers = [
+        # "o", "v", "s", "<", "p", "h", "^", "D", "X", ">", "o", "v", "s", "<",
+        # "p", "h", "^", "D", "X", ">"
+        # ]
+
+        self.markers = {
+            "LSS-LRTA*(ONE)": "o",
+            # "EES-slow":"orangered",
+            "LSS-LRTA*(ALL)": "v",
+            # r"$\widehat{\mathrm{PTS}}$": "orangered",
+            # "Our Approach": "s",
+            # "WA*-slow": "orangered",
+            # "BEES-LBUG": "maroon",
+            # "DynamicLookahead": "deepskyblue",
+            r"Dynamic $\widehat{\mathrm{f}}$": "<",
+            # "DXES-0.8": "magenta",
+            # "DXES": "maroon",
+            # "DXES-NRE": "magenta",
+            "FACS": "s"
+        }
 
         self.algorithmPalette = {
-            "ONE": "royalblue",
+            "LSS-LRTA*(ONE)": "royalblue",
             # "EES-slow":"orangered",
-            "ALL": "orangered",
+            "LSS-LRTA*(ALL)": "orangered",
             # r"$\widehat{\mathrm{PTS}}$": "orangered",
             "Our Approach": "limegreen",
             # "WA*-slow": "orangered",
             # "BEES-LBUG": "maroon",
             # "DynamicLookahead": "deepskyblue",
-            "DynamicFhat": "deepskyblue",
+            r"Dynamic $\widehat{\mathrm{f}}$": "limegreen",
             # "DXES-0.8": "magenta",
             # "DXES": "maroon",
             # "DXES-NRE": "magenta",
-            "Our Approach DY": "maroon",
+            "FACS": "maroon",
             # "DPS": "tan",
             # "XES-LBUG": "maroon",
             # "XES-cp05": "maroon",
@@ -81,7 +97,8 @@ class Configure:
                          "log10 (Algorithm Node Generated /  baseline Node Generated)",
                          "cpu": "Raw CPU Time",
                          "solved": "Number of Solved Instances (Total=totalInstance)",
-                         "lookahead": "Node Expansion Limit",
+                         # "lookahead": "Node Expansion Limit",
+                         "lookahead": "Expansions per action",
                          "solutionLength": "Solution Length",
                          "gatRatio": "GAT factor of optimal",
                          }
@@ -112,11 +129,15 @@ class Configure:
                                            "startObstacleField": [10, 30, 100, 300, 1000],
                                            "uniformObstacleField": [10, 30, 100, 300, 1000],
                                            "goalObstacle_big_checkerboard": [4, 10, 30, 100, 300, 1000],
-                                           "startObstacle_big_checkerboard": [4, 10, 30, 100, 300, 1000],
+                                           # "startObstacle_big_checkerboard": [4, 10, 30, 100, 300, 1000],
+                                           "startObstacle_big_checkerboard": [4, 10, 30, 100, 300],
                                            "uniformObstacle_big_checkerboard": [4, 10, 30, 100, 300, 1000],
                                            "mixed_big_checkerboard": [4, 10, 30, 100, 300, 1000],
                                            "startObsAndGoalObs_big_checkerboard": [4, 10, 30, 100, 300, 1000],
-                                           "mixed_big_checkerboard_corridor": [4, 10, 30, 100, 300, 1000],
+                                           # "mixed_big_checkerboard_corridor": [4, 10, 30, 100, 300, 1000],
+                                           "mixed_big_checkerboard_corridor": [4, 10, 30, 100, 300],
+                                           # "only_corridor_big_checkerboard": [4, 10, 30, 100, 300, 1000],
+                                           "only_corridor_big_checkerboard": [4, 10, 30, 100, 300],
                                        }
                                     },
                                    }

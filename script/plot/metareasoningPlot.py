@@ -64,7 +64,7 @@ def parseArugments():
         action='store',
         dest='lookaheadEnd',
         help='lookahead end: anything below this value, (default: 100)',
-        default='1000')
+        default='300')
 
     parser.add_argument('-z',
                         action='store',
@@ -114,34 +114,44 @@ def parseArugments():
 
 
 def makePointPlot(xAxis, yAxis, dataframe, hue,
-                  orderList, hueOrderList, xLabel, yLabel, outputName,
+                  orderList, colorDict, xLabel, yLabel, outputName,
                   markerList, title):
     sns.set(rc={
         'figure.figsize': (13, 10),
         'font.size': 27,
         'text.color': 'black'
     })
+
+    mean_df = dataframe.groupby(hue)[yAxis].apply(gmean).reset_index()
+    mean_df = mean_df.sort_values(by=[yAxis], ascending=False)
+    hue_order_list = mean_df[hue]
+    curMarkers = [markerList[alg] for alg in hue_order_list]
+
     ax = sns.pointplot(x=xAxis,
                        y=yAxis,
                        hue=hue,
                        order=orderList,
-                       hue_order=hueOrderList,
+                       hue_order=hue_order_list,
                        data=dataframe,
+                       palette=colorDict,
                        ci=95,
                        errwidth=3,
                        join=False,
                        dodge=0.1,
-                       palette="Set2",
-                       markers=markerList)
-    ax.tick_params(colors='black', labelsize=12)
-    plt.ylabel(yLabel, color='black', fontsize=18)
-    plt.xlabel(xLabel, color='black', fontsize=18)
+                       # palette="Set2",
+                       markers=curMarkers)
+    ax.tick_params(colors='black', labelsize=30)
+    plt.ylabel(yLabel, color='black', fontsize=30)
+    plt.xlabel(xLabel, color='black', fontsize=30)
+    # plt.yticks([1,5,10,15,20,25]) # for mixed
+    # plt.yticks([1,4,6,8,10,12,14,16])# for start obs
+    # no customize yticks need for only corridor
 
-    plt.setp(ax.get_legend().get_texts(), fontsize='18')  # for legend text
-    plt.setp(ax.get_legend().get_title(), fontsize='18')  # for legend title
+    plt.setp(ax.get_legend().get_texts(), fontsize='30')  # for legend text
+    plt.setp(ax.get_legend().get_title(), fontsize='30')  # for legend title
 
     fontSize = 18
-    ax.set_title(title, fontdict={'fontsize': fontSize})
+    # ax.set_title(title, fontdict={'fontsize': fontSize})
 
     plt.savefig(outputName, bbox_inches="tight", pad_inches=0)
     plt.savefig(outputName.replace(".jpg", ".eps"),
@@ -669,6 +679,8 @@ def createTitle(args):
                                  "Handcrafted pathfinding - Tar Pit Near Star and Obstacle Near Goal",
                                  "mixed_big_checkerboard_corridor":
                                  "Handcrafted pathfinding - Tar Pit Near Star and Corridor Near Goal",
+                                 "only_corridor_big_checkerboard":
+                                 "Handcrafted pathfinding - Corridor Near Goal",
                                            },
 
              }
@@ -694,14 +706,14 @@ def plotting(args, config):
     elif args.plotType == "gatRatio":
         ratioDF = getRatioDF(rawdf, args)
         makePointPlot("lookahead", args.plotType, ratioDF, "Algorithm",
-                      limits, config.getAlgorithmsOrder(),
+                      limits, config.getAlgorithmColor(),
                       showname["lookahead"], showname[args.plotType],
                       createOutFilePrefix(args) + args.plotType+".jpg",
                       config.getMarkers(), createTitle(args))
 
     else:
         makePointPlot("lookahead", args.plotType, rawdf, "Algorithm",
-                      limits, config.getAlgorithmsOrder(),
+                      limits, config.getAlgorithmColor(),
                       showname["lookahead"], showname[args.plotType],
                       createOutFilePrefix(args) + args.plotType+".jpg",
                       config.getMarkers(), createTitle(args))
