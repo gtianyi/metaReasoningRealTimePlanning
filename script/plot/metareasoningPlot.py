@@ -63,8 +63,8 @@ def parseArugments():
         '-e',
         action='store',
         dest='lookaheadEnd',
-        help='lookahead end: anything below this value, (default: 100)',
-        default='300')
+        help='lookahead end: anything below this value, (default: 1000)',
+        default='1000')
 
     parser.add_argument('-z',
                         action='store',
@@ -508,7 +508,7 @@ def getRatioDF(rawdf, args):
         ratio = float(row["solutionCost"]) / \
             float(instanceOpt[row["instance"]])
         gatRatio.append(ratio)
-        if row["Algorithm"] == "Our Approach" and row["lookahead"] == 10:
+        if row["Algorithm"] == "FACS" and row["lookahead"] == 1000:
             if ratio > worestRatio:
                 worestRatio, worestID = ratio, row["instance"]
 
