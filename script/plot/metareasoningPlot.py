@@ -122,6 +122,25 @@ def makePointPlot(xAxis, yAxis, dataframe, hue,
         'text.color': 'black'
     })
 
+
+    #  sns.set(rc={
+        # 'figure.figsize': (13, 10),
+        # 'font.size': 27,
+        # 'text.color': 'black',
+        # "lines.linewidth": 2,
+    # })
+    plt.rcParams["font.family"] = 'serif'
+    plt.rcParams["font.serif"] = ['Times New Roman']
+    # plt.rcParams["font.serif"] = ['Times']
+
+    # plt.rcParams["font.family"] = 'sans-serif'
+    # plt.rcParams["font.sans-serif"] = ['DejaVu Sans']
+
+    plt.rcParams["figure.figsize"] = (13,10)
+    plt.rcParams["font.size"] = 27
+    plt.rcParams["text.usetex"] = True
+    plt.rcParams["lines.linewidth"] = 2
+
     mean_df = dataframe.groupby(hue)[yAxis].apply(gmean).reset_index()
     mean_df = mean_df.sort_values(by=[yAxis], ascending=False)
     hue_order_list = mean_df[hue]
